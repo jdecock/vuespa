@@ -4,7 +4,6 @@ CREATE TABLE `User` (
 	`email` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`roles` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`password` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
-	`password_salt` varchar(100) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`confirmation_token` varchar(100) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`confirmation_token_time` timestamp NULL DEFAULT NULL,
 	`recovery_token` varchar(100) CHARACTER SET utf8mb4 DEFAULT NULL,

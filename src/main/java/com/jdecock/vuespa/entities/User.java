@@ -26,9 +26,6 @@ public class User {
 	private String password;
 
 	@Column(length = 100)
-	private String passwordSalt;
-
-	@Column(length = 100)
 	private String confirmationToken;
 
 	private Date confirmationTokenTime;
