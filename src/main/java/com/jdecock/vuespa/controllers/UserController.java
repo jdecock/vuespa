@@ -1,9 +1,9 @@
 package com.jdecock.vuespa.controllers;
 
-import com.jdecock.vuespa.entities.AuthRequest;
-import com.jdecock.vuespa.entities.UserInfo;
+import com.jdecock.vuespa.dtos.AuthRequestDTO;
+import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.services.JwtService;
-import com.jdecock.vuespa.services.UserInfoService;
+import com.jdecock.vuespa.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class UserController {
 	@Autowired
-	private UserInfoService userInfoService;
+	private UserService userService;
 
 	@Autowired
 	private JwtService jwtService;
@@ -29,8 +29,9 @@ public class UserController {
 	}
 
 	@PostMapping("/addNewUser")
-	public String addNewUser(@RequestBody UserInfo userInfo) {
-		return userInfoService.addUser(userInfo);
+	public String addNewUser(@RequestBody User userInfo) {
+		var user = userService.addUser(userInfo);
+		return user == null ? "Failed to save user" : "Successfully added user";
 	}
 
 	@GetMapping("/user/userProfile")
@@ -46,12 +47,12 @@ public class UserController {
 	}
 
 	@PostMapping("/generateToken")
-	public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-		var token = new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword());
+	public String authenticateAndGetToken(@RequestBody AuthRequestDTO authRequest) {
+		var token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword());
 		var authentication = authenticationManager.authenticate(token);
 
 		if (authentication.isAuthenticated())
-			return jwtService.generateToken(authRequest.getUsername());
+			return jwtService.generateToken(authRequest.getEmail());
 
 		throw new UsernameNotFoundException("Invalid user request");
 	}

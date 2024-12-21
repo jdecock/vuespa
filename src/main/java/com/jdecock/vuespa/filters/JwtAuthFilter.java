@@ -1,7 +1,7 @@
 package com.jdecock.vuespa.filters;
 
 import com.jdecock.vuespa.services.JwtService;
-import com.jdecock.vuespa.services.UserInfoService;
+import com.jdecock.vuespa.services.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +22,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	private JwtService jwtService;
 
 	@Autowired
-	private UserInfoService userInfoService;
+	private UserService userService;
 
 	@Override
 	protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain)
@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 		// If the token is valid and no authentication is set in the context
 		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			var userDetails = userInfoService.loadUserByUsername(username);
+			var userDetails = userService.loadUserByUsername(username);
 
 			// Validate token and set authentication
 			if (jwtService.validateToken(token, userDetails)) {

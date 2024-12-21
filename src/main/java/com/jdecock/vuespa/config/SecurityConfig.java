@@ -1,7 +1,7 @@
 package com.jdecock.vuespa.config;
 
 import com.jdecock.vuespa.filters.JwtAuthFilter;
-import com.jdecock.vuespa.services.UserInfoService;
+import com.jdecock.vuespa.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,7 +28,7 @@ public class SecurityConfig {
 
 	@Bean
 	public UserDetailsService userDetailsService() {
-		return new UserInfoService();
+		return new UserService();
 	}
 
 	@Bean

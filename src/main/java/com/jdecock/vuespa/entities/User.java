@@ -1,52 +1,58 @@
-//package com.jdecock.vuespa.entities;
-//
-//import jakarta.persistence.*;
-//import lombok.Getter;
-//import lombok.Setter;
-//
-//import java.util.Date;
-//
-//@Entity
-//@Table
-//public class User {
-//	@Id
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	@Getter @Setter
-//	private Long id;
-//
-//	@Getter @Setter
-//	private String name;
-//
-//	@Getter @Setter
-//	private String email;
-//
-//	@Getter @Setter
-//	private String password;
-//
-//	@Getter @Setter
-//	private String passwordSalt;
-//
-//	@Getter @Setter
-//	private String confirmationToken;
-//
-//	@Getter @Setter
-//	private Date confirmationTokenTime;
-//
-//	@Getter @Setter
-//	private String recoveryToken;
-//
-//	@Getter @Setter
-//	private Date recoveryTokenTime;
-//
-//	@Getter @Setter
-//	private Boolean disabled;
-//
-//	@Getter @Setter
-//	private String disabledNote;
-//
-//	@Getter @Setter
-//	private Date creationDate;
-//
-//	@Getter @Setter
-//	private Date lastModifiedDate;
-//}
+package com.jdecock.vuespa.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.util.Date;
+
+@Entity
+@Table
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class User {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	private String name;
+
+	private String email;
+
+	private String roles;
+
+	private String password;
+
+	@Column(name = "passwordSalt")
+	private String passwordSalt;
+
+	@Column(name = "confirmationToken")
+	private String confirmationToken;
+
+	@Column(name = "confirmationTokenTime")
+	private Date confirmationTokenTime;
+
+	@Column(name = "recoveryToken")
+	private String recoveryToken;
+
+	@Column(name = "recoveryTokenTime")
+	private Date recoveryTokenTime;
+
+	private Boolean disabled;
+
+	@Column(name = "disabledNote")
+	private String disabledNote;
+
+	@Column(name = "creationDate")
+	@CreationTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date creationDate;
+
+	@Column(name = "lastModifiedDate")
+	@UpdateTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date lastModifiedDate;
+}
