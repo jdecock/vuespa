@@ -25,7 +25,6 @@ public class UserService implements UserDetailsService {
 	public User addUser(User user) {
 		var encoder = new BCryptPasswordEncoder();
 		user.setPassword(encoder.encode(user.getPassword()));
-		user.setDisabled(false);
 		return userRepository.save(user);
 	}
 }
