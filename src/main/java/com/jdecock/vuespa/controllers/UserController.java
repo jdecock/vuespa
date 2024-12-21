@@ -4,7 +4,6 @@ import com.jdecock.vuespa.dtos.AuthRequestDTO;
 import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.services.JwtService;
 import com.jdecock.vuespa.services.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -14,14 +13,15 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
 public class UserController {
-	@Autowired
-	private UserService userService;
+	private final UserService userService;
+	private final JwtService jwtService;
+	private final AuthenticationManager authenticationManager;
 
-	@Autowired
-	private JwtService jwtService;
-
-	@Autowired
-	private AuthenticationManager authenticationManager;
+	public UserController(UserService userService, JwtService jwtService, AuthenticationManager authenticationManager) {
+		this.userService = userService;
+		this.jwtService = jwtService;
+		this.authenticationManager = authenticationManager;
+	}
 
 	@GetMapping("/welcome")
 	public String welcome() {

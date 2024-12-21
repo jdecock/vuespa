@@ -16,7 +16,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
-	private static final int THIRTY_MINUTES = 1000 * 60 * 30;
+	private static final int THIRTY_MINUTES_IN_MILLIS = 1000 * 60 * 30;
 
 	@Value("${jwt.secret-key}")
 	private String jwtSecret;
@@ -49,7 +49,7 @@ public class JwtService {
 			.claims(claims)
 			.subject(userName)
 			.issuedAt(new Date())
-			.expiration(new Date(System.currentTimeMillis() + THIRTY_MINUTES))
+			.expiration(new Date(System.currentTimeMillis() + THIRTY_MINUTES_IN_MILLIS))
 			.signWith(getSecretKey(), Jwts.SIG.HS256)
 			.compact();
 	}
