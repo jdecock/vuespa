@@ -1,20 +1,21 @@
 <script setup lang="ts">
 	import { ref } from 'vue';
-	import axios from "axios";
+	import axios from 'axios';
 
 	const email = ref('');
 	const password = ref('');
 	const rememberMe = ref(false);
 
 	function login() {
-		axios.post('/auth/generate-token', {
-			email: email.value,
-			password: password.value
-		})
-		.then(result => {
-			console.log(result.data.success);
-			console.log(result.data.message);
-		});
+		axios
+			.post('/auth/generate-token', {
+				email: email.value,
+				password: password.value
+			})
+			.then(result => {
+				console.log(result.data.success);
+				console.log(result.data.message);
+			});
 	}
 </script>
 

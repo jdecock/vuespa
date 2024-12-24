@@ -4,7 +4,10 @@
 
 		<p>Enter the address you used when you joined and we'll send you instructions to reset your password.</p>
 
-		<p>For security reasons, we <em>do not</em> store your password. So rest assured that we will never send you your password via email.</p>
+		<p>
+			For security reasons, we <em>do not</em> store your password. So rest assured that we will never send you your
+			password via email.
+		</p>
 
 		<form>
 			<div>

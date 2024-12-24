@@ -3,7 +3,7 @@
 	"arrowParens": "avoid",
 	"bracketSpacing": true,
 	"bracketSameLine": true,
-	"printWidth": 160,
+	"printWidth": 120,
 	"quoteProps": "consistent",
 	"semi": true,
 	"singleQuote": true,
