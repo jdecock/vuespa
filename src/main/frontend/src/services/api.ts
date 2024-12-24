@@ -1,3 +1,5 @@
 import axios from 'axios';
 
-export const getApiTestMessage = () => axios.get('/api/v1/test');
+const instance = axios.create();
+
+export default instance;

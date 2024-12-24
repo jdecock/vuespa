@@ -1,21 +1,21 @@
 <script setup lang="ts">
 	import { ref } from 'vue';
-	import axios from 'axios';
+	import { useUserStore } from '@/stores/userStore.ts';
+	import type { AuthRequest } from '@/types/authRequest.ts';
 
 	const email = ref('');
 	const password = ref('');
 	const rememberMe = ref(false);
 
+	const userStore = useUserStore();
+
 	function login() {
-		axios
-			.post('/auth/generate-token', {
-				email: email.value,
-				password: password.value
-			})
-			.then(result => {
-				console.log(result.data.success);
-				console.log(result.data.message);
-			});
+		const authentication: AuthRequest = {
+			email: email.value,
+			password: password.value
+		};
+
+		userStore.dispatchLogin(authentication).then(x => console.log(x));
 	}
 </script>
 
