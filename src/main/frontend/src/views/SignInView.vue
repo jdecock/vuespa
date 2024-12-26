@@ -15,7 +15,10 @@
 			password: password.value
 		};
 
-		userStore.dispatchLogin(authentication).then(x => console.log(x));
+		userStore.dispatchLogin(authentication).then(x => {
+			console.log(x);
+			userStore.dispatchUserInfo().then(y => console.log(y));
+		});
 	}
 </script>
 

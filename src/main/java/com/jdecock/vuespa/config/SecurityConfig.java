@@ -38,6 +38,9 @@ public class SecurityConfig {
 					"/auth/generate-token"
 //					"/auth/welcome",
 				).permitAll()
+				.requestMatchers(
+					"/user/"
+				).hasAnyAuthority("ROLE_USER")
 //				.requestMatchers(
 //					"/auth/user/**"
 //				).hasAuthority("ROLE_USER")

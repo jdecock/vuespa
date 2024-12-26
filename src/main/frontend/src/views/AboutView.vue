@@ -1,20 +1,9 @@
 <script setup lang="ts">
-	import { ref, onMounted } from 'vue';
-	import { getApiTestMessage } from '@/services/api';
+	import { ref } from 'vue';
 	import { useCounterStore } from '@/stores/counter';
 
 	const message = ref('Loading...');
 	const store = useCounterStore();
-
-	async function fetchTestMessage() {
-		getApiTestMessage().then(response => {
-			message.value = response.data.message;
-		});
-	}
-
-	onMounted(async () => {
-		await fetchTestMessage();
-	});
 </script>
 
 <template>
