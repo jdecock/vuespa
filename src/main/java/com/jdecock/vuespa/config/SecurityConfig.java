@@ -24,30 +24,22 @@ public class SecurityConfig {
 	private final JwtAuthFilter jwtAuthFilter;
 	private final UserService userService;
 
-	public SecurityConfig(final JwtAuthFilter jwtAuthFilter, final UserService userService) {
+	public SecurityConfig(JwtAuthFilter jwtAuthFilter, UserService userService) {
 		this.jwtAuthFilter = jwtAuthFilter;
 		this.userService = userService;
 	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(AbstractHttpConfigurer::disable) // Disable CSRF for stateless APIs
+		http.csrf(AbstractHttpConfigurer::disable)
 			.authorizeHttpRequests(x -> x
 				.requestMatchers(
-					"/auth/sign-up",
-					"/auth/generate-token"
-//					"/auth/welcome",
+					"/api/auth/sign-up",
+					"/api/auth/generate-token"
 				).permitAll()
 				.requestMatchers(
-					"/user/"
+					"/api/user"
 				).hasAnyAuthority("ROLE_USER")
-//				.requestMatchers(
-//					"/auth/user/**"
-//				).hasAuthority("ROLE_USER")
-//				.requestMatchers(
-//					"/auth/admin/**"
-//				).hasAuthority("ROLE_ADMIN")
-//				.anyRequest().authenticated() // Protect all other endpoints
 				.anyRequest().denyAll() // Deny all other endpoints
 			)
 			.sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No sessions
@@ -55,15 +47,15 @@ public class SecurityConfig {
 			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Add JWT filter
 
 		return http.build();
-	}
+ 	}
 
 	@Bean
 	public AuthenticationProvider authenticationProvider() {
-		var authenticationProvider = new DaoAuthenticationProvider();
-		authenticationProvider.setUserDetailsService(userService);
-		authenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
-		return authenticationProvider;
-	}
+		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+		daoAuthenticationProvider.setUserDetailsService(userService);
+		daoAuthenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
+		return daoAuthenticationProvider;
+	 }
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

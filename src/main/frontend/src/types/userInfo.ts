@@ -1,12 +1,13 @@
 import type { UserRole } from '@/types/userRole.ts';
 
 export type UserInfo = {
-	id: number;
+	id?: number;
 	name: string;
 	email: string;
-	roles: Array<UserRole>;
-	disabled: boolean;
-	disabledNote: string;
-	creationDate: Date;
-	lastModifiedDate: Date;
+	plainTextPassword?: string;
+	roles?: Array<UserRole>;
+	disabled?: boolean;
+	disabledNote?: string;
+	creationDate?: Date;
+	lastModifiedDate?: Date;
 };

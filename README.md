@@ -8,6 +8,10 @@ It includes basic user creation, authentication, and role-based access control u
 
 The server side code is a Spring Boot application using Maven. In addition, the following repositories are used:
 
+### Database
+
+This project is set up to use a MySQL database named `vue_spa`. This database will be automatically created the first time the project is run
+
 ### Maven Repositories
 
 * **[Spring Web](https://github.com/spring-projects/spring-framework)**  

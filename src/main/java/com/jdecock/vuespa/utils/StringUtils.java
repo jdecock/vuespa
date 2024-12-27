@@ -1,6 +1,6 @@
 package com.jdecock.vuespa.utils;
 
-public class StringUtils {
+public abstract class StringUtils {
 	public static boolean isEmpty(String str) {
 		return str == null || str.trim().isEmpty();
 	}

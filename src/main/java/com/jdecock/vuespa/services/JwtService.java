@@ -1,5 +1,6 @@
 package com.jdecock.vuespa.services;
 
+import com.jdecock.vuespa.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -16,20 +17,20 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
-	private static final int THIRTY_MINUTES_IN_MILLIS = 1000 * 60 * 30;
+	private static final int THIRTY_MINUTES_IN_MILLIS = 30 * 60 * 1000;
 
 	@Value("${jwt.secret-key}")
 	private String jwtSecret;
 
-	public String generateToken(String userName) {
-		return createToken(new HashMap<>(), userName);
+	public String generateToken(String username) {
+		return createToken(new HashMap<>(), username);
 	}
 
-	public Boolean validateToken(String token, UserDetails userDetails) {
-		var username = extractUsername(token);
-		var isTokenExpired = extractExpiration(token).before(new Date());
+	public boolean validateToken(String token, UserDetails userDetails) {
+		String username = extractUsername(token);
+		boolean isTokenExpired = extractExpiration(token).before(new Date());
 
-		return username.equals(userDetails.getUsername()) && !isTokenExpired;
+		return StringUtils.isSet(username) && username.equalsIgnoreCase(userDetails.getUsername()) && !isTokenExpired;
 	}
 
 	public String extractUsername(String token) {
@@ -44,10 +45,10 @@ public class JwtService {
 		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
 	}
 
-	private String createToken(Map<String, Object> claims, String userName) {
+	private String createToken(Map<String, Object> claims, String username) {
 		return Jwts.builder()
 			.claims(claims)
-			.subject(userName)
+			.subject(username)
 			.issuedAt(new Date())
 			.expiration(new Date(System.currentTimeMillis() + THIRTY_MINUTES_IN_MILLIS))
 			.signWith(getSecretKey(), Jwts.SIG.HS256)

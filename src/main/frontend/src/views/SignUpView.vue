@@ -1,3 +1,27 @@
+<script setup lang="ts">
+	import { ref } from 'vue';
+	import { useUserStore } from '@/stores/userStore.ts';
+	import type { UserInfo } from '@/types/userInfo.ts';
+
+	const name = ref('');
+	const email = ref('');
+	const password = ref('');
+
+	const userStore = useUserStore();
+
+	function createUser() {
+		const user: UserInfo = {
+			name: name.value,
+			email: email.value,
+			plainTextPassword: password.value
+		};
+
+		userStore.dispatchSignUp(user).then(x => {
+			console.log('createUser', x);
+		});
+	}
+</script>
+
 <template>
 	<main>
 		<h1>Sign Up</h1>
@@ -6,20 +30,20 @@
 
 		<div>or sign in with email</div>
 
-		<form>
+		<form @submit.prevent="createUser">
 			<div>
 				<label for="inputName">Name</label><br />
-				<input type="text" id="inputName" />
+				<input type="text" id="inputName" v-model.trim="name" required />
 			</div>
 
 			<div>
 				<label for="inputEmail">Email</label><br />
-				<input type="email" id="inputEmail" />
+				<input type="email" id="inputEmail" v-model.trim="email" required />
 			</div>
 
 			<div>
 				<label for="inputPassword">Password</label><br />
-				<input type="password" id="inputPassword" />
+				<input type="password" id="inputPassword" v-model.trim="password" required />
 			</div>
 
 			<div>

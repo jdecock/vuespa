@@ -3,6 +3,7 @@ package com.jdecock.vuespa.dtos;
 import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.entities.UserRoleType;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @Getter
+@NoArgsConstructor
 public class UserDTO {
 	private Long id;
 
@@ -38,10 +40,10 @@ public class UserDTO {
 
 	private Date lastModifiedDate;
 
-	public UserDTO() {
-	}
-
 	public UserDTO(User user) {
+		if (user == null)
+			return;
+
 		this.id = user.getId();
 		this.name = user.getName();
 		this.email = user.getEmail();

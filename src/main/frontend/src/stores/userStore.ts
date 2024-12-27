@@ -37,6 +37,34 @@ export const useUserStore = defineStore('userStore', () => {
 		};
 	}
 
+	async function dispatchSignUp(user: UserInfo): Promise<ApiResponse<null>> {
+		try {
+			const { status, data } = await Api.user.createUser(user);
+
+			if (status === 200) {
+				const authentication: AuthRequest = {
+					email: user.email,
+					password: user.plainTextPassword
+				};
+
+				return dispatchLogin(authentication);
+			}
+		} catch (error) {
+			console.error('Error:', error);
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				content: null
+			};
+		}
+
+		return {
+			success: false,
+			message: 'There was no response from the server',
+			content: null
+		};
+	}
+
 	async function dispatchUserInfo(): Promise<ApiResponse<UserInfo | null>> {
 		try {
 			const { status, data } = await Api.user.loadUserInfo();
@@ -65,6 +93,7 @@ export const useUserStore = defineStore('userStore', () => {
 
 	return {
 		dispatchLogin,
+		dispatchSignUp,
 		dispatchUserInfo,
 		jwt
 	};

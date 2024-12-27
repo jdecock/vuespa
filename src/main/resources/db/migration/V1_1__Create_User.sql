@@ -1,4 +1,4 @@
-CREATE TABLE `User` (
+CREATE TABLE `user` (
 	`id` bigint NOT NULL AUTO_INCREMENT,
 	`name` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`email` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
