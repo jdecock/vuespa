@@ -5,7 +5,7 @@ export type UserInfo = {
 	name: string;
 	email: string;
 	plainTextPassword?: string;
-	roles?: Array<UserRole>;
+	roles?: UserRole[];
 	disabled?: boolean;
 	disabledNote?: string;
 	creationDate?: Date;

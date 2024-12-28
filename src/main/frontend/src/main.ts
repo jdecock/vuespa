@@ -8,9 +8,7 @@ import router from './router';
 import setupInterceptors from './services/interceptors.ts';
 
 const app = createApp(App);
-
-const store = createPinia();
-app.use(store);
+app.use(createPinia());
 setupInterceptors();
 app.use(router);
 

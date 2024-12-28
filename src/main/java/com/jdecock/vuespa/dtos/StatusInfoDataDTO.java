@@ -8,14 +8,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class StatusInfoDataDTO<T> extends StatusInfoDTO {
-	private T data;
+	private T payload;
 
 	public StatusInfoDataDTO(boolean success, String message) {
 		super(success, message);
 	}
 
-	public StatusInfoDataDTO(boolean success, String message, T data) {
+	public StatusInfoDataDTO(boolean success, String message, T payload) {
 		super(success, message);
-		this.data = data;
+		this.payload = payload;
 	}
 }

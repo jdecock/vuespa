@@ -17,14 +17,22 @@
 
 		userStore.dispatchLogin(authentication).then(x => {
 			console.log(x);
-			userStore.dispatchUserInfo().then(y => console.log(y));
+			userStore.dispatchLoadUserInfo().then(y => console.log(y));
 		});
+	}
+
+	function testAuthUrl() {
+		userStore.dispatchLoadUserInfo().then(y => console.log(y));
 	}
 </script>
 
 <template>
 	<main>
 		<h1>Sign In</h1>
+
+		<div>
+			<button type="button" @click="testAuthUrl">Test</button>
+		</div>
 
 		<a href="#">Sign in with Google</a>
 

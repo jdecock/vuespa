@@ -1,5 +1,9 @@
 package com.jdecock.vuespa.services;
 
+import com.jdecock.vuespa.entities.RefreshToken;
+import com.jdecock.vuespa.entities.User;
+import com.jdecock.vuespa.repositories.RefreshTokenRepository;
+import com.jdecock.vuespa.repositories.UserRepository;
 import com.jdecock.vuespa.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -13,14 +17,25 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Component
 public class JwtService {
-	private static final int THIRTY_MINUTES_IN_MILLIS = 30 * 60 * 1000;
+	// TODO: Reset the access token lifetime after sorting all the authentication stuff
+	private static final int ACCESS_TOKEN_LIFETIME = 30000; // 30 * 60 * 1000; // Thirty minutes
+	private static final int RECOVERY_TOKEN_LIFETIME = 7 * 24 * 60 * 60 * 1000; // Seven days
+
+	private final RefreshTokenRepository refreshTokenRepository;
+	private final UserRepository userRepository;
 
 	@Value("${jwt.secret-key}")
 	private String jwtSecret;
+
+	public JwtService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
+		this.refreshTokenRepository = refreshTokenRepository;
+		this.userRepository = userRepository;
+	}
 
 	public String generateToken(String username) {
 		return createToken(new HashMap<>(), username);
@@ -41,6 +56,30 @@ public class JwtService {
 		return extractClaim(token, Claims::getExpiration);
 	}
 
+	public RefreshToken createRefreshToken(String email) {
+		User user = userRepository.findByEmail(email).orElse(null);
+		if (user == null)
+			return null;
+
+		RefreshToken refreshToken = new RefreshToken();
+		refreshToken.setUser(user);
+		refreshToken.setToken(UUID.randomUUID().toString());
+		refreshToken.setExpiration(new Date(System.currentTimeMillis() + RECOVERY_TOKEN_LIFETIME));
+
+		return refreshTokenRepository.save(refreshToken);
+	}
+
+	public RefreshToken verifyRefreshToken(RefreshToken refreshToken) {
+		if (refreshToken == null || refreshToken.getExpiration() == null || refreshToken.getExpiration().before(new Date())) {
+			// If this is an expired token, delete it.
+			if (refreshToken != null)
+				refreshTokenRepository.delete(refreshToken);
+			return null;
+		}
+
+		return refreshToken;
+	}
+
 	private SecretKey getSecretKey() {
 		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
 	}
@@ -50,7 +89,7 @@ public class JwtService {
 			.claims(claims)
 			.subject(username)
 			.issuedAt(new Date())
-			.expiration(new Date(System.currentTimeMillis() + THIRTY_MINUTES_IN_MILLIS))
+			.expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_LIFETIME))
 			.signWith(getSecretKey(), Jwts.SIG.HS256)
 			.compact();
 	}

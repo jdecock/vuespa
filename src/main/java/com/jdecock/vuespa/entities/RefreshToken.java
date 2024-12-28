@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.util.Date;
 
@@ -18,15 +19,14 @@ public class RefreshToken {
 	private Long id;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", referencedColumnName = "id")
 	private User user;
 
 	private String token;
 
-	private String description;
+	private Date expiration;
 
-	private Date tokenExpiration;
-
+	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date creationDate;
 }

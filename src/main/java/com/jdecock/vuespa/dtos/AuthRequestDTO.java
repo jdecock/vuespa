@@ -1,16 +1,12 @@
 package com.jdecock.vuespa.dtos;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Getter
-@Setter
-@NoArgsConstructor
 public class AuthRequestDTO {
-	private String email;
+	private final String email;
 
-	private String password;
+	private final String password;
 
 	AuthRequestDTO(String email, String password) {
 		this.email = email;

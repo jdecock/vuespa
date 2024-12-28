@@ -19,9 +19,6 @@ public abstract class BaseController {
 		Authentication authentication = securityContext == null ? null : securityContext.getAuthentication();
 		UserDetails principal = authentication == null ? null : (UserDetails) authentication.getPrincipal();
 
-		if (principal == null)
-			return null;
-
-		return userRepository.findByEmail(principal.getUsername()).orElse(null);
+		return principal == null ? null : userRepository.findByEmail(principal.getUsername()).orElse(null);
 	}
 }
