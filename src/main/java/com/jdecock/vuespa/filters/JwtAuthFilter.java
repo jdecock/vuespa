@@ -39,37 +39,49 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		if (StringUtils.isSet(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
 			UserDetails userDetails = userService.loadUserByUsername(username);
 
-			// Validate token and set authentication
-			if (jwtService.validateToken(accessToken, userDetails)) {
-				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-					null, userDetails.getAuthorities());
-				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-				SecurityContextHolder.getContext().setAuthentication(authToken);
-			}
+			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+				null, userDetails.getAuthorities());
+			authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authToken);
+		} else {
+			deleteAccessToken(request, response);
 		}
 
 		// Continue the filter chain
 		filterChain.doFilter(request, response);
 	}
 
-	protected String getAccessToken(HttpServletRequest request) {
-		var cookies = request.getCookies();
+	private Cookie getCookie(HttpServletRequest request, String cookieName) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies == null)
+			return null;
 
-		if (cookies != null) {
-			for (Cookie cookie : request.getCookies()) {
-				if (StringUtils.isSet(cookie.getName()) && cookie.getName().equals(JwtService.ACCESS_TOKEN_COOKIE_NAME)) {
-					String accessToken = cookie.getValue();
-					if (StringUtils.isEmpty(accessToken))
-						return null;
-
-					String decryptedToken = SecurityCipher.decrypt(accessToken);
-					return StringUtils.isSet(decryptedToken) && decryptedToken.startsWith("Bearer ")
-						? decryptedToken.substring(7)
-						: decryptedToken;
-				}
-			}
+		for (Cookie cookie : cookies) {
+			if (StringUtils.isSet(cookie.getName()) && cookie.getName().equals(cookieName))
+				return cookie;
 		}
 
 		return null;
+	}
+
+	private String getAccessToken(HttpServletRequest request) {
+		Cookie accessTokenCookie = getCookie(request, JwtService.ACCESS_TOKEN_COOKIE_NAME);
+		String accessToken = accessTokenCookie != null ? accessTokenCookie.getValue() : null;
+		if (StringUtils.isEmpty(accessToken))
+			return null;
+
+		String decryptedToken = SecurityCipher.decrypt(accessToken);
+		return StringUtils.isSet(decryptedToken) && decryptedToken.startsWith("Bearer ")
+			? decryptedToken.substring(7)
+			: decryptedToken;
+	}
+
+	protected void deleteAccessToken(HttpServletRequest request, HttpServletResponse response) {
+		Cookie accessTokenCookie = getCookie(request, JwtService.ACCESS_TOKEN_COOKIE_NAME);
+		if (accessTokenCookie == null)
+			return;
+
+		accessTokenCookie.setMaxAge(0);
+		response.addCookie(accessTokenCookie);
 	}
 }

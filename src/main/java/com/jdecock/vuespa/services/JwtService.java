@@ -4,13 +4,11 @@ import com.jdecock.vuespa.entities.RefreshToken;
 import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.repositories.RefreshTokenRepository;
 import com.jdecock.vuespa.repositories.UserRepository;
-import com.jdecock.vuespa.utils.StringUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -23,9 +21,9 @@ import java.util.function.Function;
 @Component
 public class JwtService {
 	public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+	public static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 
-	// TODO: Reset the access token lifetime after sorting all the authentication stuff
-	public static final int ACCESS_TOKEN_LIFETIME = 30000; // 30 * 60 * 1000; // Thirty minutes
+	private static final int ACCESS_TOKEN_LIFETIME = 30 * 60 * 1000; // Thirty minutes
 	private static final int RECOVERY_TOKEN_LIFETIME = 7 * 24 * 60 * 60 * 1000; // Seven days
 
 	private final RefreshTokenRepository refreshTokenRepository;
@@ -43,19 +41,8 @@ public class JwtService {
 		return createToken(new HashMap<>(), username);
 	}
 
-	public boolean validateToken(String token, UserDetails userDetails) {
-		String username = extractUsername(token);
-		boolean isTokenExpired = extractExpiration(token).before(new Date());
-
-		return StringUtils.isSet(username) && username.equalsIgnoreCase(userDetails.getUsername()) && !isTokenExpired;
-	}
-
 	public String extractUsername(String token) {
 		return extractClaim(token, Claims::getSubject);
-	}
-
-	public Date extractExpiration(String token) {
-		return extractClaim(token, Claims::getExpiration);
 	}
 
 	public RefreshToken createRefreshToken(String email) {
@@ -97,11 +84,15 @@ public class JwtService {
 	}
 
 	private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-		var claims = Jwts.parser()
-			.verifyWith(getSecretKey())
-			.build()
-			.parseSignedClaims(token)
-			.getPayload();
-		return claimsResolver.apply(claims);
+		try {
+			Claims claims = Jwts.parser()
+				.verifyWith(getSecretKey())
+				.build()
+				.parseSignedClaims(token)
+				.getPayload();
+			return claimsResolver.apply(claims);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

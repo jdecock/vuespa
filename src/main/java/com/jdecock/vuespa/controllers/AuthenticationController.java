@@ -13,10 +13,7 @@ import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -49,7 +46,7 @@ public class AuthenticationController extends BaseController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<AuthResponseDTO> login(@RequestBody AuthRequestDTO authRequest) {
+	public ResponseEntity<Void> login(@RequestBody AuthRequestDTO authRequest) {
 		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequest.getEmail(),
 			authRequest.getPassword());
 		Authentication authentication = authenticationManager.authenticate(token);
@@ -57,20 +54,25 @@ public class AuthenticationController extends BaseController {
 		if (!authentication.isAuthenticated())
 			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
 
-		// Create an encrypted HTTP cookie to hold onto the access token.
+		// Create an access token and refresh token. Store as encrypted HTTP cookies.
 		HttpHeaders responseHeaders = new HttpHeaders();
-		setAccessTokenCookie(responseHeaders, jwtService.generateToken(authRequest.getEmail()));
+		String accessToken = jwtService.generateToken(authRequest.getEmail());
+		setEncryptedHttpCookie(responseHeaders, JwtService.ACCESS_TOKEN_COOKIE_NAME, accessToken, null);
 
 		RefreshToken refreshToken = jwtService.createRefreshToken(authRequest.getEmail());
-		return ResponseEntity.ok().headers(responseHeaders).body(new AuthResponseDTO(refreshToken.getToken()));
+		setEncryptedHttpCookie(responseHeaders, JwtService.REFRESH_TOKEN_COOKIE_NAME, refreshToken.getToken(), null);
+
+		return ResponseEntity.ok().headers(responseHeaders).build();
 	}
 
 	@PostMapping("/refresh-token")
-	public ResponseEntity<AuthResponseDTO> refreshToken(@RequestBody AuthRefreshTokenDTO refreshTokenDTO) {
-		if (refreshTokenDTO == null || StringUtils.isEmpty(refreshTokenDTO.getRefreshToken()))
+	public ResponseEntity<Void> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshTokenCookieValue) {
+		if (StringUtils.isEmpty(refreshTokenCookieValue))
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 
-		RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenDTO.getRefreshToken()).orElse(null);
+		RefreshToken refreshToken = refreshTokenRepository
+			.findByToken(SecurityCipher.decrypt(refreshTokenCookieValue))
+			.orElse(null);
 		refreshToken = jwtService.verifyRefreshToken(refreshToken);
 		User user = refreshToken == null ? null : refreshToken.getUser();
 
@@ -80,24 +82,27 @@ public class AuthenticationController extends BaseController {
 		// The refresh token should only be used once.
 		refreshTokenRepository.delete(refreshToken);
 
-		// Issue new access token and refresh token. Create an encrypted HTTP cookie to hold onto the access token.
+		// Issue new access token and refresh token. Store as encrypted HTTP cookies.
 		HttpHeaders responseHeaders = new HttpHeaders();
-		setAccessTokenCookie(responseHeaders, jwtService.generateToken(user.getEmail()));
+		String accessToken = jwtService.generateToken(user.getEmail());
+		setEncryptedHttpCookie(responseHeaders, JwtService.ACCESS_TOKEN_COOKIE_NAME, accessToken, null);
 
 		RefreshToken newRefreshToken = jwtService.createRefreshToken(user.getEmail());
-		return ResponseEntity.ok().headers(responseHeaders).body(new AuthResponseDTO(newRefreshToken.getToken()));
+		setEncryptedHttpCookie(responseHeaders, JwtService.REFRESH_TOKEN_COOKIE_NAME, newRefreshToken.getToken(), null);
+
+		return ResponseEntity.ok().headers(responseHeaders).build();
 	}
 
-	private void setAccessTokenCookie(HttpHeaders httpHeaders, String accessToken) {
-		String encryptedToken = SecurityCipher.encrypt(accessToken);
-		if (StringUtils.isEmpty(encryptedToken))
+	private void setEncryptedHttpCookie(HttpHeaders httpHeaders, String cookieName, String cookieValue, Long maxAgeSeconds) {
+		String encryptedValue = SecurityCipher.encrypt(cookieValue);
+		if (StringUtils.isEmpty(encryptedValue))
 			return;
 
-		HttpCookie cookie = ResponseCookie.from(JwtService.ACCESS_TOKEN_COOKIE_NAME, encryptedToken)
-			.maxAge(JwtService.ACCESS_TOKEN_LIFETIME / 1000)
+		HttpCookie httpCookie = ResponseCookie.from(cookieName, encryptedValue)
+			.maxAge(maxAgeSeconds == null ? -1 : maxAgeSeconds)
 			.httpOnly(true)
 			.path("/")
 			.build();
-		httpHeaders.add(HttpHeaders.SET_COOKIE, cookie.toString());
+		httpHeaders.add(HttpHeaders.SET_COOKIE, httpCookie.toString());
 	}
 }

@@ -6,21 +6,7 @@ import type { AxiosError } from 'axios';
 import type { UserInfo } from '@/types/userInfo.ts';
 
 export const useUserStore = defineStore('userStore', () => {
-	const refreshTokenStorageKey = 'refreshToken';
-
 	let user: UserInfo | null = null;
-
-	function getRefreshToken() {
-		return localStorage.getItem(refreshTokenStorageKey);
-	}
-
-	function setRefreshToken(token?: string) {
-		if (!token || !token.length) {
-			localStorage.removeItem(refreshTokenStorageKey);
-		} else {
-			localStorage.setItem(refreshTokenStorageKey, token);
-		}
-	}
 
 	function currentUser() {
 		return user;
@@ -28,11 +14,9 @@ export const useUserStore = defineStore('userStore', () => {
 
 	async function dispatchLogin(authentication: AuthRequest): Promise<ApiResponse<null>> {
 		try {
-			const { status, data } = await Api.authentication.login(authentication);
+			const { status } = await Api.authentication.login(authentication);
 
-			if (status === 200 && data) {
-				setRefreshToken(data.refreshToken);
-
+			if (status === 200) {
 				return {
 					success: true,
 					message: 'User logged in',
@@ -42,7 +26,7 @@ export const useUserStore = defineStore('userStore', () => {
 
 			return {
 				success: false,
-				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
+				message: `Received a ${status} status from the server`,
 				payload: null
 			};
 
@@ -106,8 +90,6 @@ export const useUserStore = defineStore('userStore', () => {
 
 	return {
 		currentUser,
-		getRefreshToken,
-		setRefreshToken,
 		dispatchLogin,
 		dispatchSignUp,
 		dispatchLoadUserInfo
