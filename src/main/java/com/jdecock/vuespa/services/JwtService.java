@@ -22,8 +22,10 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
+	public static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
+
 	// TODO: Reset the access token lifetime after sorting all the authentication stuff
-	private static final int ACCESS_TOKEN_LIFETIME = 30000; // 30 * 60 * 1000; // Thirty minutes
+	public static final int ACCESS_TOKEN_LIFETIME = 30000; // 30 * 60 * 1000; // Thirty minutes
 	private static final int RECOVERY_TOKEN_LIFETIME = 7 * 24 * 60 * 60 * 1000; // Seven days
 
 	private final RefreshTokenRepository refreshTokenRepository;

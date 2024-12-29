@@ -6,23 +6,9 @@ import type { AxiosError } from 'axios';
 import type { UserInfo } from '@/types/userInfo.ts';
 
 export const useUserStore = defineStore('userStore', () => {
-	const accessTokenStorageKey = 'accessToken';
 	const refreshTokenStorageKey = 'refreshToken';
 
 	let user: UserInfo | null = null;
-
-	// TODO: This is not secure. Don't store access token in the local storage.
-	function getAccessToken() {
-		return localStorage.getItem(accessTokenStorageKey);
-	}
-
-	function setAccessToken(token?: string) {
-		if (!token || !token.length) {
-			localStorage.removeItem(accessTokenStorageKey);
-		} else {
-			localStorage.setItem(accessTokenStorageKey, token);
-		}
-	}
 
 	function getRefreshToken() {
 		return localStorage.getItem(refreshTokenStorageKey);
@@ -44,9 +30,8 @@ export const useUserStore = defineStore('userStore', () => {
 		try {
 			const { status, data } = await Api.authentication.login(authentication);
 
-			if (status === 200 && data && data.success) {
-				setAccessToken(data.payload?.accessToken);
-				setRefreshToken(data.payload?.refreshToken);
+			if (status === 200 && data) {
+				setRefreshToken(data.refreshToken);
 
 				return {
 					success: true,
@@ -60,7 +45,9 @@ export const useUserStore = defineStore('userStore', () => {
 				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
 				payload: null
 			};
+
 		} catch (error) {
+			console.error('failed to dispatchLogin');
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -119,8 +106,6 @@ export const useUserStore = defineStore('userStore', () => {
 
 	return {
 		currentUser,
-		getAccessToken,
-		setAccessToken,
 		getRefreshToken,
 		setRefreshToken,
 		dispatchLogin,

@@ -8,12 +8,9 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class AuthResponseDTO {
-	private String accessToken;
-
 	private String refreshToken;
 
-	public AuthResponseDTO(String accessToken, String refreshToken) {
-		this.accessToken = accessToken;
+	public AuthResponseDTO(String refreshToken) {
 		this.refreshToken = refreshToken;
 	}
 }
