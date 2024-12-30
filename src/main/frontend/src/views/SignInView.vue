@@ -12,12 +12,19 @@
 	function login() {
 		const authentication: AuthRequest = {
 			email: email.value,
-			password: password.value
+			password: password.value,
+			persistLogin: rememberMe.value
 		};
 
 		userStore.dispatchLogin(authentication).then(x => {
 			console.log(x);
 			userStore.dispatchLoadUserInfo().then(y => console.log(y));
+		});
+	}
+
+	function logout() {
+		userStore.dispatchLogout().then(x => {
+			console.log(x)
 		});
 	}
 
@@ -31,7 +38,11 @@
 		<h1>Sign In</h1>
 
 		<div>
-			<button type="button" @click="testAuthUrl">Test</button>
+			<button type="button" @click="testAuthUrl">Get User</button>
+		</div>
+
+		<div>
+			<button type="button" @click="logout">Logout</button>
 		</div>
 
 		<a href="#">Sign in with Google</a>

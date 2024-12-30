@@ -1,12 +1,15 @@
 package com.jdecock.vuespa.filters;
 
+import com.jdecock.vuespa.entities.RefreshToken;
+import com.jdecock.vuespa.entities.User;
+import com.jdecock.vuespa.repositories.RefreshTokenRepository;
 import com.jdecock.vuespa.services.JwtService;
 import com.jdecock.vuespa.services.UserService;
 import com.jdecock.vuespa.utils.SecurityCipher;
 import com.jdecock.vuespa.utils.StringUtils;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jetbrains.annotations.NotNull;
@@ -23,65 +26,73 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
 	private final JwtService jwtService;
 	private final UserService userService;
+	private final RefreshTokenRepository refreshTokenRepository;
 
-	public JwtAuthFilter(final JwtService jwtService, final UserService userService) {
+	public JwtAuthFilter(final JwtService jwtService, final UserService userService, RefreshTokenRepository refreshTokenRepository) {
 		this.jwtService = jwtService;
 		this.userService = userService;
+		this.refreshTokenRepository = refreshTokenRepository;
 	}
 
 	@Override
 	protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,
 	                                @NotNull FilterChain filterChain) throws ServletException, IOException {
-		String accessToken = getAccessToken(request);
-		String username = StringUtils.isSet(accessToken) ? jwtService.extractUsername(accessToken) : null;
-
-		// If the token is valid and no authentication is set in the context
-		if (StringUtils.isSet(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = userService.loadUserByUsername(username);
-
-			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
-				null, userDetails.getAuthorities());
-			authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-			SecurityContextHolder.getContext().setAuthentication(authToken);
-		} else {
-			deleteAccessToken(request, response);
+		try {
+			authenticateFromToken(request, response, null);
+		} catch (ExpiredJwtException e) {
+			// The auth token expired. Try to get a new one using the refresh token.
+			refreshAccessToken(request, response);
 		}
 
 		// Continue the filter chain
 		filterChain.doFilter(request, response);
 	}
 
-	private Cookie getCookie(HttpServletRequest request, String cookieName) {
-		Cookie[] cookies = request.getCookies();
-		if (cookies == null)
-			return null;
+	private void authenticateFromToken(HttpServletRequest request, HttpServletResponse response, String accessToken) {
+		if (StringUtils.isEmpty(accessToken)) {
+			accessToken = jwtService.getAccessTokenValue(request);
+			accessToken = StringUtils.isEmpty(accessToken) ? null : SecurityCipher.decrypt(accessToken);
+		}
+		String username = StringUtils.isSet(accessToken) ? jwtService.extractUsername(accessToken) : null;
 
-		for (Cookie cookie : cookies) {
-			if (StringUtils.isSet(cookie.getName()) && cookie.getName().equals(cookieName))
-				return cookie;
+		// If the token is valid and no authentication is set in the context
+		if (StringUtils.isSet(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
+			UserDetails userDetails = userService.loadUserByUsername(username);
+			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+				null, userDetails.getAuthorities());
+			authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+			SecurityContextHolder.getContext().setAuthentication(authToken);
+		} else {
+			refreshAccessToken(request, response);
+		}
+	}
+
+	private void refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+		// Check to see if there's a refresh token
+		String tokenValue = jwtService.getRefreshTokenValue(request);
+		tokenValue = StringUtils.isEmpty(tokenValue) ? null : SecurityCipher.decrypt(tokenValue);
+		if (StringUtils.isEmpty(tokenValue)) {
+			jwtService.removeAuthenticationTokens(request, response);
+			return;
 		}
 
-		return null;
-	}
+		RefreshToken refreshToken = refreshTokenRepository.findByToken(tokenValue).orElse(null);
+		refreshToken = jwtService.verifyRefreshToken(refreshToken);
+		User user = refreshToken == null ? null : refreshToken.getUser();
+		boolean persistLogin = refreshToken != null && refreshToken.isPersistLogin();
 
-	private String getAccessToken(HttpServletRequest request) {
-		Cookie accessTokenCookie = getCookie(request, JwtService.ACCESS_TOKEN_COOKIE_NAME);
-		String accessToken = accessTokenCookie != null ? accessTokenCookie.getValue() : null;
-		if (StringUtils.isEmpty(accessToken))
-			return null;
-
-		String decryptedToken = SecurityCipher.decrypt(accessToken);
-		return StringUtils.isSet(decryptedToken) && decryptedToken.startsWith("Bearer ")
-			? decryptedToken.substring(7)
-			: decryptedToken;
-	}
-
-	protected void deleteAccessToken(HttpServletRequest request, HttpServletResponse response) {
-		Cookie accessTokenCookie = getCookie(request, JwtService.ACCESS_TOKEN_COOKIE_NAME);
-		if (accessTokenCookie == null)
+		if (refreshToken == null || user == null) {
+			jwtService.removeAuthenticationTokens(request, response);
 			return;
+		}
 
-		accessTokenCookie.setMaxAge(0);
-		response.addCookie(accessTokenCookie);
+		// The refresh token should only be used once.
+		refreshTokenRepository.delete(refreshToken);
+
+		// Issue new access and refresh token.
+		String refreshedAccessToken = jwtService.generateToken(response, user.getEmail());
+		jwtService.createRefreshToken(response, user.getEmail(), persistLogin);
+
+		authenticateFromToken(request, response, refreshedAccessToken);
 	}
 }

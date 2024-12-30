@@ -37,7 +37,7 @@ public class User {
 
 	private Date recoveryTokenTime;
 
-	private Boolean disabled = false;
+	private boolean disabled;
 
 	private String disabledNote;
 

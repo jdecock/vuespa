@@ -36,7 +36,7 @@ public class SecurityConfig {
 				.requestMatchers(
 					"/api/auth/sign-up",
 					"/api/auth/login",
-					"/api/auth/refresh-token"
+					"/api/auth/logout"
 				).permitAll()
 				.requestMatchers(
 					"/api/user"
@@ -56,7 +56,7 @@ public class SecurityConfig {
 		daoAuthenticationProvider.setUserDetailsService(userService);
 		daoAuthenticationProvider.setPasswordEncoder(new BCryptPasswordEncoder());
 		return daoAuthenticationProvider;
-	 }
+	}
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {

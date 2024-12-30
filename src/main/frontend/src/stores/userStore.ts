@@ -12,6 +12,32 @@ export const useUserStore = defineStore('userStore', () => {
 		return user;
 	}
 
+	async function dispatchSignUp(user: UserInfo): Promise<ApiResponse<null>> {
+		try {
+			const { status, data } = await Api.user.createUser(user);
+
+			if (status === 200 && data && data.success) {
+				return dispatchLogin({
+					email: user.email,
+					password: user.plainTextPassword ?? '',
+					persistLogin: false
+				});
+			}
+
+			return {
+				success: false,
+				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
+				payload: null
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
 	async function dispatchLogin(authentication: AuthRequest): Promise<ApiResponse<null>> {
 		try {
 			const { status } = await Api.authentication.login(authentication);
@@ -29,7 +55,6 @@ export const useUserStore = defineStore('userStore', () => {
 				message: `Received a ${status} status from the server`,
 				payload: null
 			};
-
 		} catch (error) {
 			console.error('failed to dispatchLogin');
 			return {
@@ -40,23 +65,25 @@ export const useUserStore = defineStore('userStore', () => {
 		}
 	}
 
-	async function dispatchSignUp(user: UserInfo): Promise<ApiResponse<null>> {
+	async function dispatchLogout(): Promise<ApiResponse<null>> {
 		try {
-			const { status, data } = await Api.user.createUser(user);
+			const { status } = await Api.authentication.logout();
 
-			if (status === 200 && data && data.success) {
-				return dispatchLogin({
-					email: user.email,
-					password: user.plainTextPassword ?? ''
-				});
+			if (status === 200) {
+				return {
+					success: true,
+					message: 'User logged out',
+					payload: null
+				};
 			}
 
 			return {
 				success: false,
-				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
+				message: `Received a ${status} status from the server`,
 				payload: null
 			};
 		} catch (error) {
+			console.error('failed to dispatchLogin');
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -92,6 +119,7 @@ export const useUserStore = defineStore('userStore', () => {
 		currentUser,
 		dispatchLogin,
 		dispatchSignUp,
+		dispatchLogout,
 		dispatchLoadUserInfo
 	};
 });

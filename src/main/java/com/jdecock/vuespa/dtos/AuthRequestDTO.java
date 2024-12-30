@@ -8,8 +8,11 @@ public class AuthRequestDTO {
 
 	private final String password;
 
-	AuthRequestDTO(String email, String password) {
+	private final boolean persistLogin;
+
+	AuthRequestDTO(String email, String password, boolean persistLogin) {
 		this.email = email;
 		this.password = password;
+		this.persistLogin = persistLogin;
 	}
 }

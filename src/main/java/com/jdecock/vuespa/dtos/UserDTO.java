@@ -47,7 +47,7 @@ public class UserDTO {
 		this.id = user.getId();
 		this.name = user.getName();
 		this.email = user.getEmail();
-		this.disabled = user.getDisabled();
+		this.disabled = user.isDisabled();
 		this.disabledNote = user.getDisabledNote();
 		this.creationDate = user.getCreationDate();
 		this.lastModifiedDate = user.getLastModifiedDate();

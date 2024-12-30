@@ -24,6 +24,8 @@ public class RefreshToken {
 
 	private String token;
 
+	private boolean persistLogin;
+
 	private Date expiration;
 
 	@CreationTimestamp

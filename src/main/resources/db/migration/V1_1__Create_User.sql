@@ -8,7 +8,7 @@ CREATE TABLE `user` (
 	`confirmation_token_time` timestamp NULL DEFAULT NULL,
 	`recovery_token` varchar(100) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`recovery_token_time` timestamp NULL DEFAULT NULL,
-	`disabled` bit(1) NOT NULL,
+	`disabled` bit(1) NOT NULL DEFAULT b'0',
 	`disabled_note` varchar(255) CHARACTER SET utf8mb4 DEFAULT NULL,
 	`creation_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	`last_modified_date` timestamp NULL DEFAULT NULL,
