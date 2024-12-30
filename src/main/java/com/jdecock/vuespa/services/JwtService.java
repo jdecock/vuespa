@@ -37,6 +37,12 @@ public class JwtService {
 	@Value("${jdecock.security.refresh-token-lifetime}")
 	private int refreshTokenLifetimeSeconds;
 
+	@Value("${jdecock.security.cookie-secret-key}")
+	private String cookieSecretKey;
+
+	@Value("${jdecock.security.cookie-salt}")
+	private String cookieSalt;
+
 	public JwtService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
 		this.refreshTokenRepository = refreshTokenRepository;
 		this.userRepository = userRepository;
@@ -81,18 +87,19 @@ public class JwtService {
 
 	public String getAccessTokenValue(HttpServletRequest request) {
 		Cookie cookie = getCookie(request, ACCESS_TOKEN_COOKIE_NAME);
-		return cookie == null ? null : cookie.getValue();
+		String tokenValue = cookie == null ? null : cookie.getValue();
+		return StringUtils.isSet(tokenValue) ? SecurityCipher.decrypt(tokenValue, cookieSecretKey, cookieSalt) : null;
 	}
 
 	public String getRefreshTokenValue(HttpServletRequest request) {
 		Cookie cookie = getCookie(request, REFRESH_TOKEN_COOKIE_NAME);
-		return cookie == null ? null : cookie.getValue();
+		String tokenValue = cookie == null ? null : cookie.getValue();
+		return StringUtils.isSet(tokenValue) ? SecurityCipher.decrypt(tokenValue, cookieSecretKey, cookieSalt) : null;
 	}
 
 	public void removeAuthenticationTokens(HttpServletRequest request, HttpServletResponse response) {
 		// Delete the refresh token in the repository
 		String refreshTokenValue = getRefreshTokenValue(request);
-		refreshTokenValue = StringUtils.isSet(refreshTokenValue) ? SecurityCipher.decrypt(refreshTokenValue) : null;
 		refreshTokenRepository.findByToken(refreshTokenValue).ifPresent(refreshTokenRepository::delete);
 
 		deleteCookie(response, REFRESH_TOKEN_COOKIE_NAME);
@@ -133,7 +140,7 @@ public class JwtService {
 	}
 
 	private void setAccessTokenCookie(HttpServletResponse response, String accessTokenValue) {
-		String encryptedValue = SecurityCipher.encrypt(accessTokenValue);
+		String encryptedValue = SecurityCipher.encrypt(accessTokenValue, cookieSecretKey, cookieSalt);
 		if (StringUtils.isSet(encryptedValue)) {
 			Cookie httpCookie = new Cookie(ACCESS_TOKEN_COOKIE_NAME, encryptedValue);
 			httpCookie.setMaxAge(-1);
@@ -144,7 +151,7 @@ public class JwtService {
 	}
 
 	private void setRefreshTokenCookie(HttpServletResponse response, String refreshTokenValue, boolean persistLogin) {
-		String encryptedValue = SecurityCipher.encrypt(refreshTokenValue);
+		String encryptedValue = SecurityCipher.encrypt(refreshTokenValue, cookieSecretKey, cookieSalt);
 		if (StringUtils.isSet(encryptedValue)) {
 			Cookie httpCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, encryptedValue);
 			httpCookie.setMaxAge(persistLogin ? refreshTokenLifetimeSeconds : -1);

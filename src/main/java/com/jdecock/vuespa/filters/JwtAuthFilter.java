@@ -5,7 +5,6 @@ import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.repositories.RefreshTokenRepository;
 import com.jdecock.vuespa.services.JwtService;
 import com.jdecock.vuespa.services.UserService;
-import com.jdecock.vuespa.utils.SecurityCipher;
 import com.jdecock.vuespa.utils.StringUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -49,10 +48,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	}
 
 	private void authenticateFromToken(HttpServletRequest request, HttpServletResponse response, String accessToken) {
-		if (StringUtils.isEmpty(accessToken)) {
+		if (StringUtils.isEmpty(accessToken))
 			accessToken = jwtService.getAccessTokenValue(request);
-			accessToken = StringUtils.isEmpty(accessToken) ? null : SecurityCipher.decrypt(accessToken);
-		}
 		String username = StringUtils.isSet(accessToken) ? jwtService.extractUsername(accessToken) : null;
 
 		// If the token is valid and no authentication is set in the context
@@ -70,7 +67,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	private void refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
 		// Check to see if there's a refresh token
 		String tokenValue = jwtService.getRefreshTokenValue(request);
-		tokenValue = StringUtils.isEmpty(tokenValue) ? null : SecurityCipher.decrypt(tokenValue);
 		if (StringUtils.isEmpty(tokenValue)) {
 			jwtService.removeAuthenticationTokens(request, response);
 			return;
