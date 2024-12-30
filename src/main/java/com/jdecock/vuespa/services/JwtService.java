@@ -25,14 +25,17 @@ public class JwtService {
 	private static final String ACCESS_TOKEN_COOKIE_NAME = "accessToken";
 	private static final String REFRESH_TOKEN_COOKIE_NAME = "refreshToken";
 
-	private static final int ACCESS_TOKEN_LIFETIME_MILLIS = 30 * 60 * 1000; // Thirty minutes
-	private static final int REFRESH_TOKEN_LIFETIME_MILLIS = 7 * 24 * 60 * 60 * 1000; // Seven days
-
 	private final RefreshTokenRepository refreshTokenRepository;
 	private final UserRepository userRepository;
 
 	@Value("${jwt.secret-key}")
 	private String jwtSecret;
+
+	@Value("${jdecock.security.access-token-lifetime}")
+	private int accessTokenLifetimeSeconds;
+
+	@Value("${jdecock.security.refresh-token-lifetime}")
+	private int refreshTokenLifetimeSeconds;
 
 	public JwtService(RefreshTokenRepository refreshTokenRepository, UserRepository userRepository) {
 		this.refreshTokenRepository = refreshTokenRepository;
@@ -59,7 +62,7 @@ public class JwtService {
 		refreshToken.setUser(user);
 		refreshToken.setToken(token);
 		refreshToken.setPersistLogin(persistLogin);
-		refreshToken.setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_LIFETIME_MILLIS));
+		refreshToken.setExpiration(new Date(System.currentTimeMillis() + (accessTokenLifetimeSeconds * 1000L)));
 		refreshTokenRepository.save(refreshToken);
 
 		setRefreshTokenCookie(response, token, persistLogin);
@@ -105,7 +108,7 @@ public class JwtService {
 			.claims(claims)
 			.subject(username)
 			.issuedAt(new Date())
-			.expiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_LIFETIME_MILLIS))
+			.expiration(new Date(System.currentTimeMillis() + (accessTokenLifetimeSeconds * 1000L)))
 			.signWith(getSecretKey(), Jwts.SIG.HS256)
 			.compact();
 	}
@@ -144,7 +147,7 @@ public class JwtService {
 		String encryptedValue = SecurityCipher.encrypt(refreshTokenValue);
 		if (StringUtils.isSet(encryptedValue)) {
 			Cookie httpCookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, encryptedValue);
-			httpCookie.setMaxAge(persistLogin ? REFRESH_TOKEN_LIFETIME_MILLIS / 1000 : -1);
+			httpCookie.setMaxAge(persistLogin ? refreshTokenLifetimeSeconds : -1);
 			httpCookie.setHttpOnly(true);
 			httpCookie.setPath("/");
 			response.addCookie(httpCookie);

@@ -1,0 +1,26 @@
+{
+	"properties": [
+		{
+			"name": "jdecock.security.access-token-lifetime",
+			"type": "java.lang.Integer",
+			"description": "The length of time (in seconds) before an issued JWT expires. The default value is 30 minutes.",
+			"defaultValue": 1800
+		},
+		{
+			"name": "jdecock.security.refresh-token-lifetime",
+			"type": "java.lang.Integer",
+			"description": "The length of time (in seconds) before an issued refresh token expires. The default value is 7 days.",
+			"defaultValue": 604800
+		},
+		{
+			"name": "jdecock.security.cookie-secret-key",
+			"type": "java.lang.String",
+			"description": "The secret key that is used to encrypt/decrypt http cookies."
+		},
+		{
+			"name": "jdecock.security.cookie-salt",
+			"type": "java.lang.String",
+			"description": "The secret key that is used to encrypt/decrypt http cookies."
+		}
+	]
+}

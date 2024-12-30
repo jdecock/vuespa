@@ -1,5 +1,7 @@
 package com.jdecock.vuespa.utils;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -11,8 +13,11 @@ import java.security.spec.KeySpec;
 import java.util.Base64;
 
 public abstract class SecurityCipher {
-	private static final String SECRET_KEY = "8188973375794007317192c1faa75509a24a2e362a451a88de1e3c060b18e580";
-	private static final String SALT = "9924dac63f2b0aea2148772b914d6b3416867d87bef279504aa8c137c2272ca4";
+	@Value("${jdecock.security.cookie-secret-key}")
+	private static String secretKey;
+
+	@Value("${jdecock.security.cookie-salt}")
+	private static String salt;
 
 	public static String encrypt(String value) {
 		if (StringUtils.isEmpty(value))
@@ -21,7 +26,7 @@ public abstract class SecurityCipher {
 		try {
 			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
 
-			KeySpec keySpec = new PBEKeySpec(SECRET_KEY.toCharArray(), SALT.getBytes(),
+			KeySpec keySpec = new PBEKeySpec(secretKey.toCharArray(), salt.getBytes(),
 				65536, 256);
 			SecretKey secretKey = keyFactory.generateSecret(keySpec);
 			SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getEncoded(), "AES");
@@ -45,7 +50,7 @@ public abstract class SecurityCipher {
 		try {
 			SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
 
-			KeySpec keySpec = new PBEKeySpec(SECRET_KEY.toCharArray(), SALT.getBytes(),
+			KeySpec keySpec = new PBEKeySpec(secretKey.toCharArray(), salt.getBytes(),
 				65536, 256);
 			SecretKey secretKey = keyFactory.generateSecret(keySpec);
 			SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getEncoded(), "AES");
