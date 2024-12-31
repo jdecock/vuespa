@@ -11,7 +11,6 @@
 					<li>Sign Out</li>
 				</ul>
 			</li>
-			<li>Remove About Page</li>
 			<li>Tailwind CSS</li>
 		</ul>
 	</main>

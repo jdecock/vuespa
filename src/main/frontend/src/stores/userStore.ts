@@ -1,9 +1,9 @@
 import { Api } from '@/services';
-import { defineStore } from 'pinia';
-import type { AuthRequest } from '@/types/authRequest.ts';
 import type { ApiResponse } from '@/types/apiResponse.ts';
-import type { AxiosError } from 'axios';
+import type { AuthRequest } from '@/types/authRequest.ts';
 import type { UserInfo } from '@/types/userInfo.ts';
+import type { AxiosError } from 'axios';
+import { defineStore } from 'pinia';
 
 export const useUserStore = defineStore('userStore', () => {
 	let user: UserInfo | null = null;

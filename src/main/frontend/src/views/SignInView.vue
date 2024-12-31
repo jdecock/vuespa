@@ -24,7 +24,7 @@
 
 	function logout() {
 		userStore.dispatchLogout().then(x => {
-			console.log(x)
+			console.log(x);
 		});
 	}
 
