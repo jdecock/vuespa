@@ -39,7 +39,9 @@ public class SecurityConfig {
 					"/api/auth/logout"
 				).permitAll()
 				.requestMatchers(
-					"/api/user"
+					"/api/user",
+					"/api/user/change-password",
+					"/api/user/update"
 				).hasAnyAuthority("ROLE_USER")
 				.anyRequest().denyAll() // Deny all other endpoints
 			)

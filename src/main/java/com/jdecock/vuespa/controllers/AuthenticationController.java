@@ -43,16 +43,16 @@ public class AuthenticationController extends BaseController {
 
 	@PostMapping("/login")
 	public StatusInfoDataDTO<UserDTO> login(HttpServletResponse response, @RequestBody AuthRequestDTO authRequestDTO) {
-		User user = userRepository.findByEmail(authRequestDTO.email()).orElse(null);
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.email(),
-			authRequestDTO.password());
+		User user = userRepository.findByEmail(authRequestDTO.getEmail()).orElse(null);
+		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
+			authRequestDTO.getPassword());
 		Authentication authentication = authenticationManager.authenticate(token);
 
 		if (user == null || !authentication.isAuthenticated())
 			return new StatusInfoDataDTO<>(false, "Username or password is incorrect");
 
-		jwtService.generateToken(response, authRequestDTO.email());
-		jwtService.createRefreshToken(response, authRequestDTO.email(), authRequestDTO.persistLogin());
+		jwtService.generateToken(response, authRequestDTO.getEmail());
+		jwtService.createRefreshToken(response, authRequestDTO.getEmail(), authRequestDTO.isPersistLogin());
 
 		return new StatusInfoDataDTO<>(true, "User logged in", new UserDTO(user));
 	}

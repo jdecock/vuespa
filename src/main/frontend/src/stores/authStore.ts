@@ -1,6 +1,7 @@
 import { Api } from '@/services';
 import type { ApiResponse } from '@/types/apiResponse.ts';
 import type { AuthRequest } from '@/types/authRequest.ts';
+import type { ChangePasswordRequest } from '@/types/changePasswordRequest.ts';
 import type { UserInfo } from '@/types/userInfo.ts';
 import type { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
@@ -35,21 +36,17 @@ export const useAuthStore = defineStore('authStore', () => {
 
 			if (status === 200 && data && data.success) {
 				setUser(data.payload ?? null);
-
-				return {
-					success: true,
-					message: 'User logged in',
-					payload: null
-				};
 			}
 
 			return {
-				success: false,
-				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
 				payload: null
 			};
 		} catch (error) {
 			console.error('Login attempt failed:', error);
+			setUser(null);
+
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -64,17 +61,11 @@ export const useAuthStore = defineStore('authStore', () => {
 
 			if (status === 200) {
 				setUser(null);
-
-				return {
-					success: true,
-					message: 'User logged out',
-					payload: null
-				};
 			}
 
 			return {
-				success: false,
-				message: `Received a ${status} status from the server`,
+				success: status === 200,
+				message: status === 200 ? 'User logged out' : `Received a ${status} status from the server`,
 				payload: null
 			};
 		} catch (error) {
@@ -89,24 +80,84 @@ export const useAuthStore = defineStore('authStore', () => {
 
 	async function signUp(newUser: UserInfo): Promise<ApiResponse<null>> {
 		try {
-			const { status, data } = await Api.user.createUser(newUser);
+			const { status, data } = await Api.authentication.createUser(newUser);
 
 			if (status === 200 && data && data.success) {
 				setUser(data.payload ?? null);
-
-				return {
-					success: true,
-					message: 'User logged in',
-					payload: null
-				};
 			}
 
 			return {
-				success: false,
-				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
 				payload: null
 			};
 		} catch (error) {
+			setUser(null);
+
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
+	async function updateUser(user: UserInfo): Promise<ApiResponse<null>> {
+		try {
+			const { status, data } = await Api.user.updateUser(user);
+
+			if (status === 200 && data && data.success) {
+				setUser(data.payload ?? null);
+			}
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: null
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
+	async function changePassword(password: ChangePasswordRequest): Promise<ApiResponse<null>> {
+		try {
+			const { status, data } = await Api.user.changePassword(password);
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: null
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
+	async function refreshUserInfo(): Promise<ApiResponse<null>> {
+		try {
+			const { status, data } = await Api.user.loadUserInfo();
+
+			if (status === 200 && data && data.success) {
+				setUser(data.payload ?? null);
+			}
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: null
+			};
+		} catch (error) {
+			setUser(null);
+
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -132,6 +183,9 @@ export const useAuthStore = defineStore('authStore', () => {
 		login,
 		logout,
 		signUp,
+		refreshUserInfo,
+		changePassword,
+		updateUser,
 		userHasRole,
 		userHasAnyRole
 	};

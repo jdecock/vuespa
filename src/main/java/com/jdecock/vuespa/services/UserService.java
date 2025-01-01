@@ -5,6 +5,7 @@ import com.jdecock.vuespa.dtos.UserDTO;
 import com.jdecock.vuespa.entities.User;
 import com.jdecock.vuespa.entities.UserRoleType;
 import com.jdecock.vuespa.repositories.UserRepository;
+import com.jdecock.vuespa.utils.StringUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -50,5 +51,18 @@ public class UserService implements UserDetailsService {
 		user.setRoles(roles.stream().map(Enum::toString).collect(Collectors.joining(",")));
 
 		return userRepository.save(user);
+	}
+
+	public void changePassword(User user, String password) {
+		if (user == null || StringUtils.isEmpty(password))
+			return;
+
+		user.setPassword(new BCryptPasswordEncoder().encode(password));
+		userRepository.save(user);
+	}
+
+	public static boolean isPasswordCorrect(User user, String password) {
+		BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+		return encoder.matches(password, user.getPassword());
 	}
 }

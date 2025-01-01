@@ -6,6 +6,7 @@
 	const name = ref('');
 	const email = ref('');
 	const password = ref('');
+	const agreeToTerms = ref(false);
 
 	const authStore = useAuthStore();
 
@@ -47,12 +48,12 @@
 			</div>
 
 			<div>
-				<input type="checkbox" id="checkboxTerms" />
+				<input type="checkbox" id="checkboxTerms" v-model="agreeToTerms" />
 				<label for="checkboxTerms">I agree with the <a href="#">Terms of Service</a>.</label>
 			</div>
 
 			<div>
-				<button type="submit">Create Account</button>
+				<button type="submit" :disabled="!agreeToTerms">Create Account</button>
 			</div>
 		</form>
 

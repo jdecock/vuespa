@@ -85,6 +85,30 @@ public class JwtService {
 		return refreshToken;
 	}
 
+	public void reissueTokens(HttpServletRequest request, HttpServletResponse response, User user) {
+		// Check to see if there's a refresh token
+		String tokenValue = getRefreshTokenValue(request);
+		if (StringUtils.isEmpty(tokenValue)) {
+			removeAuthenticationTokens(request, response);
+			return;
+		}
+
+		RefreshToken refreshToken = refreshTokenRepository.findByToken(tokenValue).orElse(null);
+		boolean persistLogin = refreshToken != null && refreshToken.isPersistLogin();
+
+		if (refreshToken == null || user == null) {
+			removeAuthenticationTokens(request, response);
+			return;
+		}
+
+		// The refresh token should only be used once.
+		refreshTokenRepository.delete(refreshToken);
+
+		// Issue new access and refresh token.
+		generateToken(response, user.getEmail());
+		createRefreshToken(response, user.getEmail(), persistLogin);
+	}
+
 	public String getAccessTokenValue(HttpServletRequest request) {
 		Cookie cookie = getCookie(request, ACCESS_TOKEN_COOKIE_NAME);
 		String tokenValue = cookie == null ? null : cookie.getValue();
