@@ -1,13 +1,13 @@
 <script setup lang="ts">
 	import { ref } from 'vue';
-	import { useUserStore } from '@/stores/userStore.ts';
+	import { useAuthStore } from '@/stores/authStore.ts';
 	import type { UserInfo } from '@/types/userInfo.ts';
 
 	const name = ref('');
 	const email = ref('');
 	const password = ref('');
 
-	const userStore = useUserStore();
+	const authStore = useAuthStore();
 
 	function createUser() {
 		const user: UserInfo = {
@@ -16,7 +16,7 @@
 			plainTextPassword: password.value
 		};
 
-		userStore.dispatchSignUp(user).then(x => {
+		authStore.signUp(user).then(x => {
 			console.log('createUser', x);
 		});
 	}

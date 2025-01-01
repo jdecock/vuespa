@@ -4,46 +4,37 @@ import type { AuthRequest } from '@/types/authRequest.ts';
 import type { UserInfo } from '@/types/userInfo.ts';
 import type { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import type { UserRole } from '@/types/userRole.ts';
 
-export const useUserStore = defineStore('userStore', () => {
-	let user: UserInfo | null = null;
+export const useAuthStore = defineStore('authStore', () => {
+	const user = ref<UserInfo | null>(null);
 
-	function currentUser() {
-		return user;
-	}
+	const isAuthenticated = computed(() => !!user.value);
 
-	async function dispatchSignUp(user: UserInfo): Promise<ApiResponse<null>> {
-		try {
-			const { status, data } = await Api.user.createUser(user);
-
-			if (status === 200 && data && data.success) {
-				return dispatchLogin({
-					email: user.email,
-					password: user.plainTextPassword ?? '',
-					persistLogin: false
-				});
-			}
-
-			return {
-				success: false,
-				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
-				payload: null
-			};
-		} catch (error) {
-			return {
-				success: false,
-				message: (error as AxiosError<string>).response?.statusText,
-				payload: null
-			};
+	function initialize() {
+		const savedUser = localStorage.getItem('currentUser');
+		if (savedUser && savedUser.length) {
+			user.value = JSON.parse(savedUser) as UserInfo | null;
 		}
 	}
 
-	async function dispatchLogin(authentication: AuthRequest): Promise<ApiResponse<null>> {
+	function setUser(newUser: UserInfo | null) {
+		if (newUser) {
+			localStorage.setItem('currentUser', JSON.stringify(newUser));
+		} else {
+			localStorage.removeItem('currentUser');
+		}
+
+		user.value = newUser;
+	}
+
+	async function login(authentication: AuthRequest): Promise<ApiResponse<null>> {
 		try {
 			const { status, data } = await Api.authentication.login(authentication);
 
 			if (status === 200 && data && data.success) {
-				user = data.payload ?? null;
+				setUser(data.payload ?? null);
 
 				return {
 					success: true,
@@ -58,7 +49,7 @@ export const useUserStore = defineStore('userStore', () => {
 				payload: null
 			};
 		} catch (error) {
-			console.error('failed to dispatchLogin');
+			console.error('Login attempt failed:', error);
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -67,12 +58,12 @@ export const useUserStore = defineStore('userStore', () => {
 		}
 	}
 
-	async function dispatchLogout(): Promise<ApiResponse<null>> {
+	async function logout(): Promise<ApiResponse<null>> {
 		try {
 			const { status } = await Api.authentication.logout();
 
 			if (status === 200) {
-				user = null;
+				setUser(null);
 
 				return {
 					success: true,
@@ -87,7 +78,7 @@ export const useUserStore = defineStore('userStore', () => {
 				payload: null
 			};
 		} catch (error) {
-			console.error('failed to dispatchLogin');
+			console.error('Failed to logout:', error);
 			return {
 				success: false,
 				message: (error as AxiosError<string>).response?.statusText,
@@ -96,13 +87,18 @@ export const useUserStore = defineStore('userStore', () => {
 		}
 	}
 
-	async function dispatchLoadUserInfo(): Promise<ApiResponse<UserInfo | null>> {
+	async function signUp(newUser: UserInfo): Promise<ApiResponse<null>> {
 		try {
-			const { status, data } = await Api.user.loadUserInfo();
+			const { status, data } = await Api.user.createUser(newUser);
 
 			if (status === 200 && data && data.success) {
-				user = data.payload ?? null;
-				return data;
+				setUser(data.payload ?? null);
+
+				return {
+					success: true,
+					message: 'User logged in',
+					payload: null
+				};
 			}
 
 			return {
@@ -119,11 +115,24 @@ export const useUserStore = defineStore('userStore', () => {
 		}
 	}
 
+	function userHasRole(role: UserRole) {
+		const roles = user?.value?.roles;
+		return roles && roles.includes(role);
+	}
+
+	function userHasAnyRole(allowedRoles: UserRole[]) {
+		return isAuthenticated.value && allowedRoles && allowedRoles.some(x => userHasRole(x));
+	}
+
+	initialize();
+
 	return {
-		currentUser,
-		dispatchLogin,
-		dispatchSignUp,
-		dispatchLogout,
-		dispatchLoadUserInfo
+		user,
+		isAuthenticated,
+		login,
+		logout,
+		signUp,
+		userHasRole,
+		userHasAnyRole
 	};
 });

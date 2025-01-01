@@ -1,10 +1,13 @@
 <script setup lang="ts">
 	import router from '@/router';
-	import { useUserStore } from '@/stores/userStore.ts';
+	import { useAlertStore } from '@/stores/alertStore.ts';
+	import { useAuthStore } from '@/stores/authStore.ts';
 	import type { AuthRequest } from '@/types/authRequest.ts';
+	import { RouterLink } from 'vue-router';
 	import { ref } from 'vue';
 
-	const userStore = useUserStore();
+	const alertStore = useAlertStore();
+	const authStore = useAuthStore();
 
 	const email = ref('');
 	const password = ref('');
@@ -17,15 +20,14 @@
 			persistLogin: rememberMe.value
 		};
 
-		userStore.dispatchLogin(authRequest).then(x => {
+		authStore.login(authRequest).then(x => {
 			if (x.success) {
 				const params = new URLSearchParams(document.location.search);
 				let returnUrl = params.get('returnUrl');
 				returnUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
 				router.push(returnUrl);
 			} else {
-				// TODO: Handle error
-				console.error(x.message);
+				alertStore.error(x.message);
 			}
 		});
 	}

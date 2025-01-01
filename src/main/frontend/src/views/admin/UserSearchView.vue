@@ -1,5 +1,6 @@
 <template>
 	<main>
-		<h1>TODO:</h1>
+		<h1>Search Users</h1>
+		<h2>TODO:</h2>
 	</main>
 </template>

@@ -1,4 +1,5 @@
-import { useUserStore } from '@/stores/userStore.ts';
+import { useAlertStore } from '@/stores/alertStore.ts';
+import { useAuthStore } from '@/stores/authStore.ts';
 import { UserRole } from '@/types/userRole.ts';
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
@@ -31,8 +32,8 @@ const router = createRouter({
 			name: 'signOut',
 			component: {
 				beforeRouteEnter(to, from, next) {
-					const userStore = useUserStore();
-					userStore.dispatchLogout().then(() => {
+					const authStore = useAuthStore();
+					authStore.logout().then(() => {
 						next({ name: 'signIn' });
 					});
 				}
@@ -50,13 +51,12 @@ const router = createRouter({
 			component: () => import('../views/admin/UserSearchView.vue'),
 			meta: { requiresAuth: true, roles: [UserRole.Admin] }
 		},
-		// {
-		// 	// TODO: Figure out how to pass ':id' as an arg
-		// 	path: '/admin/users/:id',
-		// 	name: 'userEdit',
-		// 	component: () => import('../views/admin/UserEditView.vue'),
-		// 	meta: { requiresAuth: true, roles: [UserRole.Admin] }
-		// },
+		{
+			path: '/admin/users/:id',
+			name: 'userEdit',
+			component: () => import('../views/admin/UserEditView.vue'),
+			meta: { requiresAuth: true, roles: [UserRole.Admin] }
+		},
 		{
 			path: '/denied',
 			name: 'insufficientRole',
@@ -69,14 +69,14 @@ router.beforeEach((to, from, next) => {
 	const requiresAuth = to.matched.some(x => x.meta.requiresAuth);
 	const allowedRoles = to.meta.roles as UserRole[];
 
-	const userStore = useUserStore();
-	const user = userStore?.currentUser();
-	const userRoles = user?.roles;
+	const authStore = useAuthStore();
+	const alertStore = useAlertStore();
+	alertStore.clear();
 
-	if (requiresAuth && !user) {
+	if (requiresAuth && !authStore.isAuthenticated) {
 		// User is not authenticated.
 		next({ name: 'signIn', query: { returnUrl: encodeURIComponent(to.fullPath) } });
-	} else if (requiresAuth && !(allowedRoles && allowedRoles.some(x => userRoles && userRoles.includes(x)))) {
+	} else if (requiresAuth && !authStore.userHasAnyRole(allowedRoles)) {
 		// Redirect the user to a not authorized page.
 		next({ name: 'insufficientRole' });
 	} else {

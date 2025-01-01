@@ -28,29 +28,31 @@ public class AuthenticationController extends BaseController {
 	}
 
 	@PostMapping("/sign-up")
-	public StatusInfoDataDTO<UserDTO> signUp(@RequestBody UserDTO userDTO) {
+	public StatusInfoDataDTO<UserDTO> signUp(HttpServletResponse response, @RequestBody UserDTO userDTO) {
 		User user = userRepository.findByEmail(userDTO.getEmail()).orElse(null);
 		if (user != null)
 			return new StatusInfoDataDTO<>(false, "User already exists");
 
 		user = userService.createUser(userDTO);
-		return user == null
-			? new StatusInfoDataDTO<>(false, "User creation failed")
-			: new StatusInfoDataDTO<>(true, "User created successfully", new UserDTO(user));
+		if (user == null)
+			return new StatusInfoDataDTO<>(false, "User creation failed");
+
+		AuthRequestDTO authRequestDTO = new AuthRequestDTO(user.getEmail(), userDTO.getPlainTextPassword(), false);
+		return login(response, authRequestDTO);
 	}
 
 	@PostMapping("/login")
 	public StatusInfoDataDTO<UserDTO> login(HttpServletResponse response, @RequestBody AuthRequestDTO authRequestDTO) {
-		User user = userRepository.findByEmail(authRequestDTO.getEmail()).orElse(null);
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
-			authRequestDTO.getPassword());
+		User user = userRepository.findByEmail(authRequestDTO.email()).orElse(null);
+		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.email(),
+			authRequestDTO.password());
 		Authentication authentication = authenticationManager.authenticate(token);
 
 		if (user == null || !authentication.isAuthenticated())
 			return new StatusInfoDataDTO<>(false, "Username or password is incorrect");
 
-		jwtService.generateToken(response, authRequestDTO.getEmail());
-		jwtService.createRefreshToken(response, authRequestDTO.getEmail(), authRequestDTO.isPersistLogin());
+		jwtService.generateToken(response, authRequestDTO.email());
+		jwtService.createRefreshToken(response, authRequestDTO.email(), authRequestDTO.persistLogin());
 
 		return new StatusInfoDataDTO<>(true, "User logged in", new UserDTO(user));
 	}

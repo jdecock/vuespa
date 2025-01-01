@@ -6,9 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Getter
@@ -51,10 +51,6 @@ public class UserDTO {
 		this.disabledNote = user.getDisabledNote();
 		this.creationDate = user.getCreationDate();
 		this.lastModifiedDate = user.getLastModifiedDate();
-
-		this.roles = new ArrayList<>();
-		Stream.of(user.getRoles()).forEach(role -> {
-			roles.add(UserRoleType.valueOf(role));
-		});
+		this.roles = Stream.of(user.getRoles().split(",")).map(UserRoleType::valueOf).collect(Collectors.toList());
 	}
 }
