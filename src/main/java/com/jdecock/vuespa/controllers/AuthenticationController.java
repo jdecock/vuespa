@@ -7,7 +7,6 @@ import com.jdecock.vuespa.services.JwtService;
 import com.jdecock.vuespa.services.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -41,23 +40,23 @@ public class AuthenticationController extends BaseController {
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<Void> login(HttpServletResponse response, @RequestBody AuthRequestDTO authRequestDTO) {
+	public StatusInfoDataDTO<UserDTO> login(HttpServletResponse response, @RequestBody AuthRequestDTO authRequestDTO) {
+		User user = userRepository.findByEmail(authRequestDTO.getEmail()).orElse(null);
 		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
 			authRequestDTO.getPassword());
 		Authentication authentication = authenticationManager.authenticate(token);
 
-		if (!authentication.isAuthenticated())
-			return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+		if (user == null || !authentication.isAuthenticated())
+			return new StatusInfoDataDTO<>(false, "Username or password is incorrect");
 
 		jwtService.generateToken(response, authRequestDTO.getEmail());
 		jwtService.createRefreshToken(response, authRequestDTO.getEmail(), authRequestDTO.isPersistLogin());
 
-		return ResponseEntity.ok().build();
+		return new StatusInfoDataDTO<>(true, "User logged in", new UserDTO(user));
 	}
 
 	@PostMapping("/logout")
-	public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+	public void logout(HttpServletRequest request, HttpServletResponse response) {
 		jwtService.removeAuthenticationTokens(request, response);
-		return ResponseEntity.ok().build();
 	}
 }

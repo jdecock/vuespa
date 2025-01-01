@@ -8,9 +8,7 @@
 			<ul>
 				<li><RouterLink to="/">Home</RouterLink></li>
 				<li><RouterLink to="/sign-in">Sign In</RouterLink></li>
-				<!--
 				<li><RouterLink to="/sign-out">Sign Out</RouterLink></li>
-				-->
 				<li><RouterLink to="/account">My Account</RouterLink></li>
 				<li><RouterLink to="/admin/users">Search Users</RouterLink></li>
 			</ul>

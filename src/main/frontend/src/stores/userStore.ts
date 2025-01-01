@@ -40,9 +40,11 @@ export const useUserStore = defineStore('userStore', () => {
 
 	async function dispatchLogin(authentication: AuthRequest): Promise<ApiResponse<null>> {
 		try {
-			const { status } = await Api.authentication.login(authentication);
+			const { status, data } = await Api.authentication.login(authentication);
 
-			if (status === 200) {
+			if (status === 200 && data && data.success) {
+				user = data.payload ?? null;
+
 				return {
 					success: true,
 					message: 'User logged in',
@@ -52,7 +54,7 @@ export const useUserStore = defineStore('userStore', () => {
 
 			return {
 				success: false,
-				message: `Received a ${status} status from the server`,
+				message: status !== 200 ? `Received a ${status} status from the server` : data?.message,
 				payload: null
 			};
 		} catch (error) {
@@ -70,6 +72,8 @@ export const useUserStore = defineStore('userStore', () => {
 			const { status } = await Api.authentication.logout();
 
 			if (status === 200) {
+				user = null;
+
 				return {
 					success: true,
 					message: 'User logged out',

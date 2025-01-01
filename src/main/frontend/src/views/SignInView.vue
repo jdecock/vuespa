@@ -1,35 +1,33 @@
 <script setup lang="ts">
-	import { ref } from 'vue';
+	import router from '@/router';
 	import { useUserStore } from '@/stores/userStore.ts';
 	import type { AuthRequest } from '@/types/authRequest.ts';
+	import { ref } from 'vue';
+
+	const userStore = useUserStore();
 
 	const email = ref('');
 	const password = ref('');
 	const rememberMe = ref(false);
 
-	const userStore = useUserStore();
-
 	function login() {
-		const authentication: AuthRequest = {
+		const authRequest: AuthRequest = {
 			email: email.value,
 			password: password.value,
 			persistLogin: rememberMe.value
 		};
 
-		userStore.dispatchLogin(authentication).then(x => {
-			console.log(x);
-			userStore.dispatchLoadUserInfo().then(y => console.log(y));
+		userStore.dispatchLogin(authRequest).then(x => {
+			if (x.success) {
+				const params = new URLSearchParams(document.location.search);
+				let returnUrl = params.get('returnUrl');
+				returnUrl = returnUrl ? decodeURIComponent(returnUrl) : '/';
+				router.push(returnUrl);
+			} else {
+				// TODO: Handle error
+				console.error(x.message);
+			}
 		});
-	}
-
-	function logout() {
-		userStore.dispatchLogout().then(x => {
-			console.log(x);
-		});
-	}
-
-	function testAuthUrl() {
-		userStore.dispatchLoadUserInfo().then(y => console.log(y));
 	}
 </script>
 
@@ -37,14 +35,7 @@
 	<main>
 		<h1>Sign In</h1>
 
-		<div>
-			<button type="button" @click="testAuthUrl">Get User</button>
-		</div>
-
-		<div>
-			<button type="button" @click="logout">Logout</button>
-		</div>
-
+		<!-- TODO: Google sign in -->
 		<a href="#">Sign in with Google</a>
 
 		<div>or sign in with email</div>

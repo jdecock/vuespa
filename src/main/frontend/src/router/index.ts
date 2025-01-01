@@ -26,12 +26,18 @@ const router = createRouter({
 			name: 'forgotPassword',
 			component: () => import('../views/ForgotPasswordView.vue')
 		},
-		// {
-		// 	// TODO: Figure out how to do a "virtual" page that just redirects the user
-		// 	path: '/sign-out',
-		// 	name: 'signOut',
-		// 	component: () => import('../views/SignInView.vue')
-		// },
+		{
+			path: '/sign-out',
+			name: 'signOut',
+			component: {
+				beforeRouteEnter(to, from, next) {
+					const userStore = useUserStore();
+					userStore.dispatchLogout().then(() => {
+						next({ name: 'signIn' });
+					});
+				}
+			}
+		},
 		{
 			path: '/account',
 			name: 'userAccount',
@@ -43,13 +49,18 @@ const router = createRouter({
 			name: 'userSearch',
 			component: () => import('../views/admin/UserSearchView.vue'),
 			meta: { requiresAuth: true, roles: [UserRole.Admin] }
-		// },
+		},
 		// {
 		// 	// TODO: Figure out how to pass ':id' as an arg
 		// 	path: '/admin/users/:id',
 		// 	name: 'userEdit',
 		// 	component: () => import('../views/admin/UserEditView.vue'),
 		// 	meta: { requiresAuth: true, roles: [UserRole.Admin] }
+		// },
+		{
+			path: '/denied',
+			name: 'insufficientRole',
+			component: () => import('../views/errors/InsufficientRoleView.vue')
 		}
 	]
 });
@@ -64,11 +75,10 @@ router.beforeEach((to, from, next) => {
 
 	if (requiresAuth && !user) {
 		// User is not authenticated.
-		next({ name: 'signIn' });
+		next({ name: 'signIn', query: { returnUrl: encodeURIComponent(to.fullPath) } });
 	} else if (requiresAuth && !(allowedRoles && allowedRoles.some(x => userRoles && userRoles.includes(x)))) {
 		// Redirect the user to a not authorized page.
-		// TODO: Replace with an error page.
-		next({ name: 'home' });
+		next({ name: 'insufficientRole' });
 	} else {
 		// Proceed to the route
 		next();

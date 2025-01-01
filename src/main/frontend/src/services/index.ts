@@ -1,5 +1,5 @@
-import authenticationService from '@/services/authentication.ts';
-import userService from '@/services/user.ts';
+import authenticationService from '@/services/authenticationService.ts';
+import userService from '@/services/userService.ts';
 
 export const Api = {
 	authentication: authenticationService,
