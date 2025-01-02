@@ -102,7 +102,7 @@ export const useAuthStore = defineStore('authStore', () => {
 		}
 	}
 
-	async function updateUser(user: UserInfo): Promise<ApiResponse<null>> {
+	async function updateProfile(user: UserInfo): Promise<ApiResponse<null>> {
 		try {
 			const { status, data } = await Api.user.updateUser(user);
 
@@ -185,7 +185,7 @@ export const useAuthStore = defineStore('authStore', () => {
 		signUp,
 		refreshUserInfo,
 		changePassword,
-		updateUser,
+		updateProfile,
 		userHasRole,
 		userHasAnyRole
 	};

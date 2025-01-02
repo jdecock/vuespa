@@ -14,7 +14,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user")
@@ -38,6 +40,7 @@ public class UserController extends BaseController {
 	}
 
 	@PostMapping("/change-password")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public StatusInfoDTO changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
 		if (changePasswordDTO == null || StringUtils.isEmpty(changePasswordDTO.getCurPassword()) ||
 			StringUtils.isEmpty(changePasswordDTO.getNewPassword()))
@@ -55,6 +58,7 @@ public class UserController extends BaseController {
 	}
 
 	@PostMapping("/update")
+	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public StatusInfoDataDTO<UserDTO> updateUser(HttpServletRequest request, HttpServletResponse response,
 	                                             @RequestBody UserDTO userDTO) {
 		if (userDTO == null || StringUtils.isEmpty(userDTO.getName()) || StringUtils.isEmpty(userDTO.getEmail()))
@@ -76,19 +80,15 @@ public class UserController extends BaseController {
 		jwtService.reissueTokens(request, response, user);
 
 		return new StatusInfoDataDTO<>(true, "User updated successfully", new UserDTO(user));
-		/*
-		User user = userRepository.findByEmail(authRequestDTO.getEmail()).orElse(null);
-		UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(authRequestDTO.getEmail(),
-			authRequestDTO.getPassword());
-		Authentication authentication = authenticationManager.authenticate(token);
+	}
 
-		if (user == null || !authentication.isAuthenticated())
-			return new StatusInfoDataDTO<>(false, "Username or password is incorrect");
+	@GetMapping("/search")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public StatusInfoDataDTO<List<UserDTO>> searchForUsers(@RequestParam String query) {
+		List<UserDTO> results = userRepository
+			.findByNameContainingIgnoreCaseOrEmailIsContainingIgnoreCase(query, query)
+			.stream().map(UserDTO::new).collect(Collectors.toList());
 
-		jwtService.generateToken(response, authRequestDTO.getEmail());
-		jwtService.createRefreshToken(response, authRequestDTO.getEmail(), authRequestDTO.isPersistLogin());
-
-		return new StatusInfoDataDTO<>(true, "User logged in", new UserDTO(user));
-		 */
+		return new StatusInfoDataDTO<>(true, "Found " + results.size() + " users", results);
 	}
 }

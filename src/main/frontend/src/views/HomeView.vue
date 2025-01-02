@@ -45,7 +45,6 @@
 							<li>Log Out of All Devices</li>
 						</ul>
 					</li>
-					<li>User Search</li>
 					<li>User Edit</li>
 					<li>Dynamic Nav Bar</li>
 					<li>Tailwind CSS</li>

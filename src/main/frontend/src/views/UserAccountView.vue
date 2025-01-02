@@ -17,7 +17,7 @@
 	function saveUser() {
 		if (!user.value) return;
 
-		authStore.updateUser(user.value).then(x => {
+		authStore.updateProfile(user.value).then(x => {
 			if (x.success) {
 				alertStore.success(x.message);
 			} else {
@@ -79,18 +79,18 @@
 					<legend>Change Password</legend>
 
 					<div>
-						<label for="inputPassword">Current Password</label><br />
-						<input type="password" id="inputPassword" v-model.trim="curPassword" required />
+						<label for="inputCurPassword">Current Password</label><br />
+						<input type="password" id="inputCurPassword" v-model.trim="curPassword" required />
 					</div>
 
 					<div>
-						<label for="inputPassword">New Password</label><br />
-						<input type="password" id="inputPassword" v-model.trim="newPassword" required />
+						<label for="inputNewPassword">New Password</label><br />
+						<input type="password" id="inputNewPassword" v-model.trim="newPassword" required />
 					</div>
 
 					<div>
-						<label for="inputPassword">Confirm Password</label><br />
-						<input type="password" id="inputPassword" v-model.trim="confirmPassword" required />
+						<label for="inputConfirmPassword">Confirm Password</label><br />
+						<input type="password" id="inputConfirmPassword" v-model.trim="confirmPassword" required />
 					</div>
 
 					<div>

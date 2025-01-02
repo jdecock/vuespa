@@ -43,6 +43,9 @@ public class SecurityConfig {
 					"/api/user/change-password",
 					"/api/user/update"
 				).hasAnyAuthority("ROLE_USER")
+				.requestMatchers(
+					"/api/user/search"
+				).hasAnyAuthority("ROLE_ADMIN")
 				.anyRequest().denyAll() // Deny all other endpoints
 			)
 			.sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // No sessions
