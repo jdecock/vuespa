@@ -68,7 +68,7 @@ public class JwtService {
 		refreshToken.setUser(user);
 		refreshToken.setToken(token);
 		refreshToken.setPersistLogin(persistLogin);
-		refreshToken.setExpiration(new Date(System.currentTimeMillis() + (accessTokenLifetimeSeconds * 1000L)));
+		refreshToken.setExpiration(new Date(System.currentTimeMillis() + (refreshTokenLifetimeSeconds * 1000L)));
 		refreshTokenRepository.save(refreshToken);
 
 		setRefreshTokenCookie(response, token, persistLogin);
