@@ -39,6 +39,14 @@ public class UserController extends BaseController {
 			: new StatusInfoDataDTO<>(true, "User found", new UserDTO(user));
 	}
 
+	@GetMapping("/{id}")
+	public StatusInfoDataDTO<UserDTO> getUser(@PathVariable Long id) {
+		User user = userRepository.findById(id).orElse(null);
+		return user == null
+			? new StatusInfoDataDTO<>(false, "The requested user does not exist")
+			: new StatusInfoDataDTO<>(true, "User found", new UserDTO(user));
+	}
+
 	@PostMapping("/change-password")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
 	public StatusInfoDTO changePassword(@RequestBody ChangePasswordDTO changePasswordDTO) {
@@ -59,8 +67,8 @@ public class UserController extends BaseController {
 
 	@PostMapping("/update")
 	@PreAuthorize("hasAuthority('ROLE_USER')")
-	public StatusInfoDataDTO<UserDTO> updateUser(HttpServletRequest request, HttpServletResponse response,
-	                                             @RequestBody UserDTO userDTO) {
+	public StatusInfoDataDTO<UserDTO> updateProfile(HttpServletRequest request, HttpServletResponse response,
+	                                                @RequestBody UserDTO userDTO) {
 		if (userDTO == null || StringUtils.isEmpty(userDTO.getName()) || StringUtils.isEmpty(userDTO.getEmail()))
 			return new StatusInfoDataDTO<>(false, "The specified user information is invalid");
 
@@ -80,6 +88,35 @@ public class UserController extends BaseController {
 		jwtService.reissueTokens(request, response, user);
 
 		return new StatusInfoDataDTO<>(true, "User updated successfully", new UserDTO(user));
+	}
+
+	@PostMapping("/save")
+	@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+	public StatusInfoDataDTO<UserDTO> save(HttpServletRequest request, HttpServletResponse response,
+	                                       @RequestBody UserDTO userDTO) {
+		if (userDTO == null || StringUtils.isEmpty(userDTO.getName()) || StringUtils.isEmpty(userDTO.getEmail()))
+			return new StatusInfoDataDTO<>(false, "The specified user information is invalid");
+
+		boolean newUser = userDTO.getId() == null;
+		User user = newUser ? new User() : userRepository.findById(userDTO.getId()).orElse(null);
+		if (user == null)
+			return new StatusInfoDataDTO<>(false, "Failed to save user");
+
+		user.setName(userDTO.getName());
+		user.setEmail(userDTO.getEmail());
+		user.setRoles(userDTO.getRoles().stream().map(Enum::name).collect(Collectors.joining(",")));
+		user.setDisabled(userDTO.isDisabled());
+		user.setDisabledNote(userDTO.isDisabled() ? userDTO.getDisabledNote() : null);
+
+		user = userRepository.save(user);
+
+		// TODO:
+		// If this is a new user, don't try to generate a password. Create the new user and send them an invitation.
+//		if (newUser) {
+//		}
+
+		return new StatusInfoDataDTO<>(true, newUser ? "User invitation sent" : "User updated successfully",
+			new UserDTO(user));
 	}
 
 	@GetMapping("/search")

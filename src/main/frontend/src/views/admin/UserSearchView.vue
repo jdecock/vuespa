@@ -41,7 +41,8 @@
 
 			<ul v-if="searchResults.length">
 				<li v-for="user in searchResults" :key="user.id">
-					<a :href="`/admin/users/${user.id}`">name: {{ user.name }}</a><br />
+					<a :href="`/admin/users/${user.id}`">name: {{ user.name }}</a
+					><br />
 					email: {{ user.email }}<br />
 					roles: {{ user.roles?.map(x => x.toString()).join(', ') }}<br />
 					disabled: {{ user.disabled }}<br />

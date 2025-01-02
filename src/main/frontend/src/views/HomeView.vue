@@ -46,6 +46,7 @@
 						</ul>
 					</li>
 					<li>User Edit</li>
+					<li>Allow Admin to Create/Invite Users</li>
 					<li>Dynamic Nav Bar</li>
 					<li>Tailwind CSS</li>
 					<li>Form Components</li>

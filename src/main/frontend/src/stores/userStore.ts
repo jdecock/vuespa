@@ -25,7 +25,64 @@ export const useUserStore = defineStore('userStore', () => {
 		}
 	}
 
+	async function getUser(userId: number): Promise<ApiResponse<UserInfo | null>> {
+		try {
+			const { status, data } = await Api.user.loadUserInfo(userId);
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: data.payload
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
+	async function saveUser(user: UserInfo): Promise<ApiResponse<UserInfo | null>> {
+		try {
+			const { status, data } = await Api.user.saveUser(user);
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: data.payload
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
+	async function updateProfile(user: UserInfo): Promise<ApiResponse<UserInfo | null>> {
+		try {
+			const { status, data } = await Api.user.updateProfile(user);
+
+			return {
+				success: data && data.success,
+				message: status === 200 ? data.message : `Received a ${status} status from the server`,
+				payload: data.payload
+			};
+		} catch (error) {
+			return {
+				success: false,
+				message: (error as AxiosError<string>).response?.statusText,
+				payload: null
+			};
+		}
+	}
+
 	return {
-		search
+		getUser,
+		saveUser,
+		search,
+		updateProfile
 	};
 });

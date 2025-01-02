@@ -104,7 +104,7 @@ export const useAuthStore = defineStore('authStore', () => {
 
 	async function updateProfile(user: UserInfo): Promise<ApiResponse<null>> {
 		try {
-			const { status, data } = await Api.user.updateUser(user);
+			const { status, data } = await Api.user.updateProfile(user);
 
 			if (status === 200 && data && data.success) {
 				setUser(data.payload ?? null);

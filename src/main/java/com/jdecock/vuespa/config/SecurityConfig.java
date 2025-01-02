@@ -44,6 +44,7 @@ public class SecurityConfig {
 					"/api/user/update"
 				).hasAnyAuthority("ROLE_USER")
 				.requestMatchers(
+					"/api/user/**",
 					"/api/user/search"
 				).hasAnyAuthority("ROLE_ADMIN")
 				.anyRequest().denyAll() // Deny all other endpoints

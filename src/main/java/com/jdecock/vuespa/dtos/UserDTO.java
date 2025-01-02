@@ -31,7 +31,7 @@ public class UserDTO {
 	private String plainTextPassword;
 
 	@Setter
-	private Boolean disabled;
+	private boolean disabled;
 
 	@Setter
 	private String disabledNote;

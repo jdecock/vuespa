@@ -7,12 +7,18 @@ async function changePassword(password: ChangePasswordRequest) {
 	return await http.post<ApiResponse<null>>('/api/user/change-password', password);
 }
 
-async function loadUserInfo() {
-	return await http.get<ApiResponse<UserInfo>>('/api/user');
+async function loadUserInfo(userId?: number) {
+	return userId
+		? await http.get<ApiResponse<UserInfo>>(`/api/user/${userId}`)
+		: await http.get<ApiResponse<UserInfo>>('/api/user');
 }
 
-async function updateUser(user: UserInfo) {
+async function updateProfile(user: UserInfo) {
 	return await http.post<ApiResponse<UserInfo>>('/api/user/update', user);
+}
+
+async function saveUser(user: UserInfo) {
+	return await http.post<ApiResponse<UserInfo>>('/api/user/save', user);
 }
 
 async function search(searchTerm: string) {
@@ -22,6 +28,7 @@ async function search(searchTerm: string) {
 export default {
 	changePassword,
 	loadUserInfo,
+	saveUser,
 	search,
-	updateUser
+	updateProfile
 };
